@@ -1,0 +1,17 @@
+##########################################################################################
+# NOTE: do not include comments on the same line as configs as this messes up the parser #
+##########################################################################################
+
+font-family             = IosevkaTerm NFM
+font-family-bold        = IosevkaTerm NFM
+font-family-italic      = IosevkaTerm NFM
+font-family-bold-italic = IosevkaTerm NFM
+
+# Kanagawa Dragon | kanso-zen | kanso-ink
+## keep in sync with nvim color scheme file
+theme = kanso-zen
+
+cursor-style-blink = false
+shell-integration-features = no-cursor
+
+window-decoration = none

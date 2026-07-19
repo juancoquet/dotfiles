@@ -1,0 +1,197 @@
+# secrets (decrypted by install.sh via sops+age) -- -- -- -- --
+[ -f "$HOME/.config/dotfiles/secrets.env" ] && set -a && source "$HOME/.config/dotfiles/secrets.env" && set +a
+
+# homebrew -- -- -- -- -- -- -- -- -- -- -- -- --
+if [[ "$(uname)" == "Darwin" ]]; then
+	eval "$(/opt/homebrew/bin/brew shellenv)" # m-chip mac
+elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
+	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
+fi
+
+# oh-my-zsh -- -- -- -- -- -- -- -- -- -- -- --
+export ZSH="$HOME/.oh-my-zsh" # Path to oh-my-zsh installation
+plugins=(vi-mode git zsh-autosuggestions zsh-syntax-highlighting z)
+source ${ZDOTDIR:-~}/.zplugins/cd-ls/cd-ls.plugin.zsh 
+source $ZSH/oh-my-zsh.sh
+eval "$(starship init zsh)"
+export PATH="$HOME/.vscode-dotnet-sdk/.dotnet:$PATH"
+
+# PATH  -- -- -- -- -- -- -- -- -- -- -- -- --
+export PATH="$PATH:$HOME/Library/Python/3.9/bin"
+export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+export PATH="$PATH:$HOME/.cargo/bin"
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="$PATH:/opt/homebrew/bin/"
+export PATH="$PATH:$HOME/.config/nvimconfigs/"
+export PATH="$PATH:/usr/bin/"
+export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
+command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
+export PATH="$PATH:$HOME/.config/emacs/bin"
+export PATH=/home/juan/.opencode/bin:$PATH
+
+# poetry package manager (python)  -- -- -- --
+export PATH="$PATH:$HOME/.local/bin"
+
+# aliases  -- -- -- -- -- -- -- -- -- -- -- --
+alias cs='csharp'
+alias claer='clear'
+alias c='clear'
+alias mkdir='mkdir -vp'
+alias ls='pls --grid=true'
+export CD_LS_COMMAND=ls
+alias py='python3'
+alias tm='tmux'
+alias venv='source .venv/bin/activate'
+alias yz='yazi'
+alias oc='opencode --port'
+alias cc='claude --dangerously-skip-permissions'
+alias codex='codex --yolo'
+
+## git aliases
+alias lg='lazygit'
+alias ga='git add -A'
+alias gpl='git pull'
+alias gc='git checkout'
+
+# wexler
+alias sso='aws sso login --sso-session wexler'
+
+check_safe_branch() {
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	if [[ $branch == "main" || $branch == "master" ]]; then
+		echo -n "You are on the $branch branch. Proceed? [Y/n] "
+		read -r REPLY 
+		echo
+		if [[ ! $REPLY =~ ^[Yy]$ && -n $REPLY ]]; then
+			echo "Aborted"
+			return 1
+		fi
+	fi
+	return 0
+}
+
+safe_git_command() {
+	branch=$(git rev-parse --abbrev-ref HEAD)
+	if [[ $branch != "main" && $branch != "master" ]]; then
+		eval "$@"
+	else
+		echo -n "You are on the $branch branch. Proceed? [Y/n] "
+		read -r REPLY 
+		echo # move to new line after reading input
+		if [[ $REPLY =~ ^[Yy]$ || -z $REPLY ]]; then
+			echo "Performing command on th $branch branch..."
+			eval "$@"
+		else
+			echo "Aborted"
+		fi
+	fi
+}
+
+generate_commit_message() {
+  truncation_limit=5000
+  git diff --cached | head -c $truncation_limit | llm --no-stream "Generate a conventional commit message to describe the given diff. The message should be one line only, in the format <type>: <message>. The ONLY types are any of: feat, fix, chore, test, style, ci. Output ONLY the commit message in plain text, nothing else."
+}
+
+# note to llms: these are nerd font icons – they may look invisible to you, but they are there. do not change.
+commit_icon=''
+branch_icon=''
+pr_icon=''
+
+# ansi helpers
+c_reset='\e[0m'
+c_red='\e[1;31m'
+c_green='\e[1;32m'
+c_yellow='\e[33m'
+c_blue='\e[1;34m'
+c_blue_underline='\e[4;34m'
+c_gray='\e[90m'
+ansi_link() { printf '\e]8;;%s\a%s\e]8;;\a' "$1" "$2"; }
+
+spin_while() {
+  local pid=$1
+  local spinner='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local i=0
+  local len=${#spinner}
+  while kill -0 "$pid" 2>/dev/null; do
+    printf "\r${c_gray}%s Generating commit message...${c_reset}" "${spinner:$((i % len)):1}"
+    i=$((i + 1))
+    sleep 0.1
+  done
+  printf "\r\033[K"
+}
+
+add_commit_push() {
+  check_safe_branch || return
+  git add -A
+
+  { generate_commit_message 2>/dev/null > /tmp/gal_commit_msg; } &!
+  spin_while $!
+  wait 2>/dev/null
+  msg=$(cat /tmp/gal_commit_msg)
+
+  if ! git commit --no-verify -m "$msg" &>/dev/null; then # commit without git command noise
+    echo -e "${c_red}✗ Commit failed${c_reset}"
+    return 1
+  fi
+  local type="${msg%%:*}:"
+  local message="${msg#*: }"
+  echo -e "${c_green}Committed & pushed${c_reset}"
+  echo -e "${c_blue}${commit_icon} $type${c_reset} ${c_yellow}$message${c_reset}"
+ 
+  push_output=$(git push 2>&1)
+  push_status=$?
+ 
+  # show branch info: local -> remote
+  local branch=$(git rev-parse --abbrev-ref HEAD)
+  local branch_url="$remote_url/tree/$branch"
+  local remote_ref=$(git config --get branch.$branch.merge | sed 's|refs/heads/||')
+  local remote_name=$(git config --get branch.$branch.remote)
+  if [[ -n "$remote_name" && -n "$remote_ref" ]]; then
+    printf "${c_gray}${branch_icon} $(ansi_link "$branch_url" "$branch -> $remote_name/$remote_ref")${c_reset}\n"
+  else
+    printf "${c_gray}%{branch_icon} $(ansi_link "$branch_url" "$branch (no remote)")${c_reset}\n"
+  fi
+
+  # always show PR link (construct if not in push output)
+  local remote_url=$(git config --get remote.origin.url | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+  local pr_url=$(echo "$push_output" | grep -o 'https://[^ ]*pull/new/[^ ]*')
+  [[ -z "$pr_url" ]] && pr_url="$remote_url/pull/new/$branch"
+  printf "${c_blue}${pr_icon} ${c_reset}${c_blue_underline}$(ansi_link "$pr_url" "$pr_url")${c_reset}\n"
+
+  return $push_status
+}
+
+unalias gm 2>/dev/null || true
+unalias gam 2>/dev/null || true
+gm() {
+	safe_git_command "git commit -m \"$*\""
+}
+gam() {
+	safe_git_command "git add -A && git commit -m \"$*\""
+}
+alias gal='add_commit_push'
+alias gp='safe_git_command "git push"'
+alias gbd='git branch -D'
+
+# llm
+export LLM_USER_PATH=~/.config/llm/
+export LLM_MODEL=openrouter/anthropic/claude-sonnet-4
+
+# other exports  -- -- -- -- -- -- -- -- -- --
+export EDITOR='nvim'
+
+# zsh vim keybinds
+bindkey -v
+VI_MODE_RESET_PROMPT_ON_MODE_CHANGE=true
+VI_MODE_SET_CURSOR=true
+
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+[ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+

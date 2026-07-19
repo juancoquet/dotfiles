@@ -1,0 +1,49 @@
+""" settings -----------------
+set clipboard+=unnamed
+set smartcase
+set undofile
+set incsearch
+set scrolloff=16
+set sidescrolloff=8
+set idearefactormode=keep " stay in normal mode when entering refactor/rename 
+
+""" basics ----------------
+map <space> <nop>
+let mapleader = ' '
+let maplocalleader = ' '
+imap <C-f> <esc>
+nmap <C-f> <nop>
+nmap <leader>H :nohl<CR>
+
+""" W/B -------------------
+"""" W/B end/beginning of line
+nmap <S-w> g_
+nmap <S-b> ^
+nmap d<S-b> d^
+nmap d<S-w> dg_
+nmap d<S-a> dg_a
+
+"""" ENTER
+nmap <CR> o<esc>
+nmap <S-CR> O<esc>
+imap <C-CR> <esc>o
+
+"""" brace/parens movement
+noremap { [{zz
+noremap } ]}zz
+noremap ( [(zz
+noremap ) ])zz
+
+"""" keep selection after indent in visual mode (not working)
+vmap \< \<gv
+vmap \> \>gv
+
+"""" indent-aware move selection with alt-j/k in visual mode
+vmap <M-k> :m '<-2<CR>gv=gv
+vmap <M-j> :m '>+1<CR>gv=gv
+vmap p \"_dP " paste over selection without yanking
+
+"""" alternative delete behaviour
+nmap DA :%d+<CR> " delete all
+
+nmap Q <nop>

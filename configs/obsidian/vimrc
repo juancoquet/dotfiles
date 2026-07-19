@@ -1,0 +1,18 @@
+" shared system clipboard
+set clipboard=unnamed
+
+" move across visual lines, not logical lines
+nmap j gj
+nmap k gk
+nmap 0 g0
+nmap _ g^
+nmap $ g$
+nmap ^ g^
+nmap A g$a
+nmap I g^i
+
+" x deletes without yanking
+noremap x "_x
+
+" paste over selection without replacing clipboard
+vmap p "_dP
