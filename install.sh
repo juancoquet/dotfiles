@@ -20,7 +20,15 @@ link() {
 
 link configs/ghostty          "$HOME/.config/ghostty"
 link configs/nvim             "$HOME/.config/nvim"
-link configs/opencode         "$HOME/.config/opencode"
+
+# opencode manages its own runtime state (node_modules, tui.json, ...)
+# inside ~/.config/opencode, so only the actual config pieces are linked,
+# not the whole directory.
+link configs/opencode/opencode.json "$HOME/.config/opencode/opencode.json"
+link configs/opencode/AGENTS.md     "$HOME/.config/opencode/AGENTS.md"
+link configs/opencode/agent         "$HOME/.config/opencode/agent"
+link configs/opencode/themes        "$HOME/.config/opencode/themes"
+
 link configs/skhd             "$HOME/.config/skhd"
 link configs/skhd/skhdrc      "$HOME/.skhdrc"
 link configs/starship/starship.toml "$HOME/.config/starship.toml"
