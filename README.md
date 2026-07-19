@@ -13,8 +13,8 @@
 ## clone + install
 
 ```
-git clone https://github.com/juancoquet/dotfiles-new.git ~/dotfiles-new
-cd ~/dotfiles-new
+git clone https://github.com/juancoquet/dotfiles.git ~/dotfiles
+cd ~/dotfiles
 ./install.sh
 ```
 
@@ -57,7 +57,7 @@ brew install yqrashawn/goku/goku
 ```
 
 - make a profile in karabiner named `Default`
-- run `GOKU_EDN_CONFIG_FILE='~/dotfiles-new/configs/karabiner.edn' goku`
+- run `GOKU_EDN_CONFIG_FILE='~/dotfiles/configs/karabiner.edn' goku`
 
 ### window management (yabai)
 
@@ -158,7 +158,7 @@ brew install node
 - symlink the vimrc into your vault root (per-vault, so not handled by `install.sh`):
 
 ```
-ln -s ~/dotfiles-new/configs/obsidian/vimrc /path/to/vault/.obsidian.vimrc
+ln -s ~/dotfiles/configs/obsidian/vimrc /path/to/vault/.obsidian.vimrc
 ```
 
 ### opencode
@@ -167,8 +167,10 @@ ln -s ~/dotfiles-new/configs/obsidian/vimrc /path/to/vault/.obsidian.vimrc
 brew install opencode
 ```
 
-- `./install.sh` symlinks `configs/opencode` -> `~/.config/opencode`
-  (agent config, MCP servers, themes)
+- `./install.sh` symlinks the individual config pieces
+  (`opencode.json`, `AGENTS.md`, `agent/`, `themes/`) into
+  `~/.config/opencode/` - not the whole directory, since opencode installs
+  its own runtime state (`node_modules`, `tui.json`, ...) there too
 - MCP server API keys are read from the secrets file - see [secrets](#secrets)
 
 ### vscode
