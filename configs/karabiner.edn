@@ -1,0 +1,71 @@
+;; layout img: http://www.keyboard-layout-editor.com/
+  ;; sign in with github, then go to juancoquet > my layouts
+
+{
+  :profiles {
+    :Default
+      {
+       :default true
+       :alone   180
+       :delay   200
+       :held    1500
+       :sim     100
+       }
+  } 
+  :devices {
+    :corne [{:vendor_id 7504 :product_id 24926}]
+  }
+  :main [;; left-hand on CAGS
+    ;; rules that only apply to non-Corne keyboards
+    {:des "caps lock to esc/ctrl" :rules [[:##caps_lock :left_control [:!corne] {:alone :escape}]]}
+    {:des "quote to ctrl" :rules [[:quote :left_control [:!corne] {:alone :quote}]]}
+    {:des "esc to caps lock" :rules [[:escape :caps_lock [:!corne]]]}
+    {
+      :des "[ to /, / to bspc, tilde to =+"
+      :rules [
+          [:open_bracket :slash [:!corne]]
+          [:slash :delete_or_backspace [:!corne]]
+          [:grave_accent_and_tilde :equal_sign [:!corne]]
+      ]
+    }
+    {
+      :des "layer1"
+      :rules [
+        [:right_command ["layer1" 1] [:!corne] {:alone :right_command :afterup ["layer1" 0]}]
+        ;; top row to symbols
+        [:q {:key :1 :modi :left_shift} ["layer1" 1]]
+        [:w {:key :2 :modi :left_shift} ["layer1" 1]]
+        [:e {:key :3 :modi :left_shift} ["layer1" 1]]
+        [:r {:key :4 :modi :left_shift} ["layer1" 1]]
+        [:t {:key :5 :modi :left_shift} ["layer1" 1]]
+        [:y {:key :6 :modi :left_shift} ["layer1" 1]]
+        [:u {:key :7 :modi :left_shift} ["layer1" 1]]
+        [:i {:key :8 :modi :left_shift} ["layer1" 1]]
+        [:o {:key :grave_accent_and_tilde :modi :left_shift} ["layer1" 1]]
+        ; [:p ] ;; available
+        ;; middle row
+        [:a {:key :1} ["layer1" 1]]
+        [:s {:key :2} ["layer1" 1]]
+        [:d {:key :3} ["layer1" 1]]
+        [:f {:key :4} ["layer1" 1]]
+        [:g {:key :5} ["layer1" 1]]
+        [:h {:key :6} ["layer1" 1]]
+        [:j {:key :7} ["layer1" 1]]
+        [:k {:key :8} ["layer1" 1]]
+        [:l {:key :9} ["layer1" 1]]
+        [:semicolon {:key :0} ["layer1" 1]]
+        ;; bottom row
+        [:z {:key :grave_accent_and_tilde} ["layer1" 1]]
+        [:x {:key :open_bracket} ["layer1" 1]]
+        [:c {:key :open_bracket :modi :left_shift} ["layer1" 1]]
+        [:v {:key :9 :modi :left_shift} ["layer1" 1]]
+        [:b {:key :backslash} ["layer1" 1]]
+        [:n {:key :backslash :modi :left_shift} ["layer1" 1]]
+        [:m {:key :0 :modi :left_shift} ["layer1" 1]]
+        [:comma {:key :close_bracket :modi :left_shift} ["layer1" 1]]
+        [:period {:key :close_bracket} ["layer1" 1]]
+        [:slash {:key :3 :modi :option} ["layer1" 1]]
+      ]
+    }
+  ]
+}

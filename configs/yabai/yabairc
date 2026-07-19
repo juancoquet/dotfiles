@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+# load scripting addition (required for space/window control)
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+sudo yabai --load-sa
+
+# general settings
+yabai -m config layout bsp
+yabai -m config focus_follows_mouse off
+yabai -m config mouse_follows_focus off
+
+yabai -m config top_padding 4
+yabai -m config bottom_padding 4
+yabai -m config left_padding 4
+yabai -m config right_padding 4
+yabai -m config window_gap 4
+
+# dynamic padding for max widths
+padding_script="$HOME/.config/yabai/padding.sh"
+yabai -m signal --add event=window_created action="$padding_script window_created"
+yabai -m signal --add event=window_focused action="$padding_script window_focused"
+yabai -m signal --add event=window_destroyed action="$padding_script window_destroyed"
+yabai -m signal --add event=window_resized action="$padding_script window_resized"
+yabai -m signal --add event=window_moved action="$padding_script window_moved"
+"$padding_script"
+
+# ensure 10 spaces exist (requires sip disabled for space creation)
+if command -v jq >/dev/null 2>&1; then
+  while [ "$(yabai -m query --spaces | jq 'length')" -lt 10 ]; do
+    yabai -m space --create
+  done
+fi
+
+# app rules (persistent)
+yabai -m rule --add app="^Spotify$" space=1
+yabai -m rule --add app="^zoom.us$" space=2
+yabai -m rule --add app="^Calendar$" space=3
+yabai -m rule --add app="^Slack$" space=4
+yabai -m rule --add app="^Zen Browser$" space=7
+yabai -m rule --add app="^Zen$" space=7
+yabai -m rule --add app="^Ghostty$" space=8
+yabai -m rule --add app="^Firefox Developer Edition$" space=8
+yabai -m rule --add app="^Google Chrome$" space=8
+yabai -m rule --add app="^Obsidian$" space=9
+yabai -m rule --add app="^Notion$" space=10
