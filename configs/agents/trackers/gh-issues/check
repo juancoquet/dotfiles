@@ -1,0 +1,50 @@
+#!/bin/sh
+
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repo=$(git -C "$root" rev-parse --show-toplevel)
+output=$(mktemp "${TMPDIR:-/tmp}/gh-issues-prime.XXXXXX")
+cursor_output=$(mktemp "${TMPDIR:-/tmp}/gh-issues-prime-cursor.XXXXXX")
+trap 'rm -f "$output" "$cursor_output"' EXIT
+
+sh -n "$root/gh-issues-prime"
+"$root/gh-issues-prime" >"$output"
+cmp "$root/gh-issues-context.md" "$output"
+
+PATH=/usr/bin:/bin "$root/gh-issues-prime" >"$output"
+cmp "$root/gh-issues-context.md" "$output"
+
+"$root/gh-issues-prime" --cursor >"$cursor_output"
+python3 - "$root/gh-issues-context.md" "$cursor_output" <<'PY'
+import json
+import pathlib
+import sys
+
+context = pathlib.Path(sys.argv[1]).read_text()
+rendered = json.loads(pathlib.Path(sys.argv[2]).read_text())
+assert rendered == {"additional_context": context}
+PY
+
+python3 -m json.tool "$repo/.claude/settings.json" >/dev/null
+python3 -m json.tool "$repo/.codex/hooks.json" >/dev/null
+python3 -m json.tool "$repo/.cursor/hooks.json" >/dev/null
+
+grep -q "gh-issues-prime" "$repo/.opencode/plugins/gh-issues-prime.ts"
+grep -q "experimental.chat.system.transform" "$repo/.opencode/plugins/gh-issues-prime.ts"
+grep -q "experimental.session.compacting" "$repo/.opencode/plugins/gh-issues-prime.ts"
+
+for value in \
+	type:epic type:feature type:bug type:task \
+	status:draft status:todo status:in-progress \
+	priority:critical priority:high priority:low priority:deferred; do
+	grep -q "\`$value\`" "$root/gh-issues-context.md"
+done
+
+test "$(grep -c -- '--limit 20' "$root/gh-issues-context.md")" = 4
+grep -q 'Do not duplicate this with a `status:blocked`' \
+	"$root/gh-issues-context.md"
+grep -q '\*\*Milestones\*\* group issues' \
+	"$root/gh-issues-context.md"
+
+echo "gh-issues prime checks passed"

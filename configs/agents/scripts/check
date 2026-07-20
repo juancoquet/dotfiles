@@ -21,6 +21,7 @@ if [ -z "${PYTHON:-}" ]; then
 fi
 
 "$ROOT/scripts/render" "$OUTPUT"
+"$ROOT/trackers/gh-issues/check"
 
 expected=(
 	"claude/agents/branch-reviewer.md"

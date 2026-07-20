@@ -196,6 +196,10 @@ Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
 - `mcp/servers.json` defines the shared Context7 and Linear MCP servers once.
   Harness-specific MCPs stay in the relevant native source under `harnesses/`,
   or in `configs/opencode/opencode.json` for opencode.
+- `trackers/gh-issues/` contains the opt-in GitHub Issues priming package and
+  setup instructions for repositories that use GitHub Issues. This dotfiles
+  repository enables it through its project-local harness hooks; installation
+  does not activate it globally for unrelated repositories.
 
 `install.sh` renders native branch-reviewer, MCP, Cursor rule, Codex, and
 opencode files into `~/.config/dotfiles/generated/agents/`, then links those
