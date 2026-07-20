@@ -60,6 +60,8 @@ that does not materially expand the task.
   quoted forward reference or the concrete class name.
 - Prefer immutable Pydantic value models. Reuse a repository's shared frozen
   model base or configuration rather than repeating it per model.
+- Never re-export symbols owned by another package, including from
+  `__init__.py`. Import them directly from the package that defines them.
 
 ## Concurrency
 
