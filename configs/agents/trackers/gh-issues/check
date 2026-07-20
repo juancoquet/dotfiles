@@ -46,5 +46,9 @@ grep -q 'Do not duplicate this with a `status:blocked`' \
 	"$root/gh-issues-context.md"
 grep -q '\*\*Milestones\*\* group issues' \
 	"$root/gh-issues-context.md"
+grep -q 'issue state and close reason are canonical' \
+	"$root/gh-issues-context.md"
+grep -q 'automatic closure is historical and must be ignored' \
+	"$root/gh-issues-context.md"
 
 echo "gh-issues prime checks passed"
