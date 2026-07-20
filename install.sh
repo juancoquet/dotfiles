@@ -18,6 +18,36 @@ link() {
 	echo "linked $dst -> $src"
 }
 
+link_managed() {
+	local src="$1" dst="$2" backup
+	mkdir -p "$(dirname "$dst")"
+	if [ -L "$dst" ]; then
+		rm "$dst"
+	elif [ -e "$dst" ]; then
+		backup="$dst.pre-dotfiles.$(date +%Y%m%d%H%M%S)"
+		mv "$dst" "$backup"
+		echo "backed up $dst -> $backup"
+	fi
+	ln -s "$src" "$dst"
+	echo "linked $dst -> $src"
+}
+
+ensure_runtime_dir() {
+	local dir="$1"
+	if [ -L "$dir" ]; then
+		rm "$dir"
+	fi
+	mkdir -p "$dir"
+}
+
+remove_managed_link() {
+	local target="$1" expected_source="$2"
+	if [ -L "$target" ] && [ "$(readlink "$target")" = "$expected_source" ]; then
+		rm "$target"
+		echo "removed redundant link $target"
+	fi
+}
+
 link configs/ghostty          "$HOME/.config/ghostty"
 link configs/nvim             "$HOME/.config/nvim"
 
@@ -25,9 +55,37 @@ link configs/nvim             "$HOME/.config/nvim"
 # inside ~/.config/opencode, so only the actual config pieces are linked,
 # not the whole directory.
 link configs/opencode/opencode.json "$HOME/.config/opencode/opencode.json"
-link configs/opencode/AGENTS.md     "$HOME/.config/opencode/AGENTS.md"
-link configs/opencode/agent         "$HOME/.config/opencode/agent"
 link configs/opencode/themes        "$HOME/.config/opencode/themes"
+
+# Shared agent content is authored once. Identical formats are linked directly;
+# native subagent definitions and Cursor's global rule are rendered on install.
+GENERATED_AGENTS="$HOME/.config/dotfiles/generated/agents"
+"$DOTFILES_DIR/configs/agents/scripts/render" "$GENERATED_AGENTS"
+
+link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$HOME/.codex/AGENTS.md"
+link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$HOME/.config/opencode/AGENTS.md"
+
+link_managed "$DOTFILES_DIR/configs/agents/skills" "$HOME/.agents/skills"
+link_managed "$DOTFILES_DIR/configs/agents/skills" "$HOME/.claude/skills"
+link_managed "$DOTFILES_DIR/configs/agents/skills" "$HOME/.cursor/skills"
+remove_managed_link "$HOME/.config/opencode/skills" "$DOTFILES_DIR/configs/agents/skills"
+
+ensure_runtime_dir "$HOME/.claude/agents"
+ensure_runtime_dir "$HOME/.codex/agents"
+ensure_runtime_dir "$HOME/.cursor/agents"
+ensure_runtime_dir "$HOME/.cursor/rules"
+ensure_runtime_dir "$HOME/.config/opencode/agent"
+
+link_managed "$GENERATED_AGENTS/claude/agents/branch-reviewer.md" "$HOME/.claude/agents/branch-reviewer.md"
+link_managed "$GENERATED_AGENTS/codex/agents/branch-reviewer.toml" "$HOME/.codex/agents/branch-reviewer.toml"
+link_managed "$GENERATED_AGENTS/cursor/agents/branch-reviewer.md" "$HOME/.cursor/agents/branch-reviewer.md"
+link_managed "$GENERATED_AGENTS/cursor/rules/global-agent-instructions.mdc" "$HOME/.cursor/rules/global-agent-instructions.mdc"
+link_managed "$GENERATED_AGENTS/opencode/agent/branch-reviewer.md" "$HOME/.config/opencode/agent/branch-reviewer.md"
+link_managed "$DOTFILES_DIR/configs/opencode/agent/sidekick.md" "$HOME/.config/opencode/agent/sidekick.md"
+
+link_managed "$DOTFILES_DIR/configs/agents/harnesses/claude/settings.json" "$HOME/.claude/settings.json"
+link_managed "$DOTFILES_DIR/configs/agents/harnesses/codex/config.toml" "$HOME/.codex/config.toml"
 
 link configs/skhd             "$HOME/.config/skhd"
 link configs/skhd/skhdrc      "$HOME/.skhdrc"
