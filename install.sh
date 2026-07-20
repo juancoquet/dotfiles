@@ -7,6 +7,18 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+for candidate in python3.13 python3.12 python3.11; do
+	if command -v "$candidate" >/dev/null 2>&1; then
+		PYTHON="$candidate"
+		break
+	fi
+done
+
+if [ -z "${PYTHON:-}" ]; then
+	echo "Python 3.11 or newer is required to install agent configuration" >&2
+	exit 1
+fi
+
 link() {
 	local src="$DOTFILES_DIR/$1" dst="$2"
 	mkdir -p "$(dirname "$dst")"
@@ -54,12 +66,12 @@ link configs/nvim             "$HOME/.config/nvim"
 # opencode manages its own runtime state (node_modules, tui.json, ...)
 # inside ~/.config/opencode, so only the actual config pieces are linked,
 # not the whole directory.
-link configs/opencode/opencode.json "$HOME/.config/opencode/opencode.json"
 link configs/opencode/themes        "$HOME/.config/opencode/themes"
 
 # Shared agent content is authored once. Identical formats are linked directly;
 # native subagent definitions and Cursor's global rule are rendered on install.
 GENERATED_AGENTS="$HOME/.config/dotfiles/generated/agents"
+link_managed "$DOTFILES_DIR/configs/agents/scripts/context7-mcp" "$HOME/.config/dotfiles/bin/context7-mcp"
 "$DOTFILES_DIR/configs/agents/scripts/render" "$GENERATED_AGENTS"
 
 link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$HOME/.claude/CLAUDE.md"
@@ -81,11 +93,18 @@ link_managed "$GENERATED_AGENTS/claude/agents/branch-reviewer.md" "$HOME/.claude
 link_managed "$GENERATED_AGENTS/codex/agents/branch-reviewer.toml" "$HOME/.codex/agents/branch-reviewer.toml"
 link_managed "$GENERATED_AGENTS/cursor/agents/branch-reviewer.md" "$HOME/.cursor/agents/branch-reviewer.md"
 link_managed "$GENERATED_AGENTS/cursor/rules/global-agent-instructions.mdc" "$HOME/.cursor/rules/global-agent-instructions.mdc"
+link_managed "$GENERATED_AGENTS/cursor/mcp.json" "$HOME/.cursor/mcp.json"
 link_managed "$GENERATED_AGENTS/opencode/agent/branch-reviewer.md" "$HOME/.config/opencode/agent/branch-reviewer.md"
+link_managed "$GENERATED_AGENTS/opencode/opencode.json" "$HOME/.config/opencode/opencode.json"
 link_managed "$DOTFILES_DIR/configs/opencode/agent/sidekick.md" "$HOME/.config/opencode/agent/sidekick.md"
 
 link_managed "$DOTFILES_DIR/configs/agents/harnesses/claude/settings.json" "$HOME/.claude/settings.json"
-link_managed "$DOTFILES_DIR/configs/agents/harnesses/codex/config.toml" "$HOME/.codex/config.toml"
+"$PYTHON" "$DOTFILES_DIR/configs/agents/scripts/install-claude-mcp" \
+	"$GENERATED_AGENTS/claude/mcp.json" \
+	"$HOME/.claude.json" \
+	"$HOME/.config/dotfiles/state/claude-mcp.json"
+echo "merged managed MCP servers into $HOME/.claude.json"
+link_managed "$GENERATED_AGENTS/codex/config.toml" "$HOME/.codex/config.toml"
 
 link configs/skhd             "$HOME/.config/skhd"
 link configs/skhd/skhdrc      "$HOME/.skhdrc"

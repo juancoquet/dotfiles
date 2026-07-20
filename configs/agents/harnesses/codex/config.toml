@@ -37,3 +37,5 @@ js_repl = false
 [desktop]
 conversationDetailMode = "STEPS_COMMANDS"
 ambient-suggestions-enabled = true
+git-branch-prefix = ""
+followUpQueueMode = "queue"
