@@ -53,9 +53,6 @@ alias ga='git add -A'
 alias gpl='git pull'
 alias gc='git checkout'
 
-# wexler
-alias sso='aws sso login --sso-session wexler'
-
 check_safe_branch() {
 	branch=$(git rev-parse --abbrev-ref HEAD)
 	if [[ $branch == "main" || $branch == "master" ]]; then
