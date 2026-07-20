@@ -1,0 +1,13 @@
+{
+  "model": "sonnet",
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true
+  },
+  "tui": "fullscreen",
+  "skipDangerousModePermissionPrompt": true,
+  "agentPushNotifEnabled": true,
+  "inputNeededNotifEnabled": true,
+  "effortLevel": "high",
+  "remoteControlAtStartup": true,
+  "skipWorkflowUsageWarning": true
+}

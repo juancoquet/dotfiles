@@ -22,7 +22,9 @@ cd ~/dotfiles
 is installed and your age key is present, decrypts `secrets.enc.yaml` into
 `~/.config/dotfiles/secrets.env`. It's safe to re-run at any time. It will
 refuse to overwrite a file at the destination that isn't already a symlink
-(back that up / remove it yourself first).
+(back that up / remove it yourself first). Agent config is the exception:
+the first migration backs up existing files with a `.pre-dotfiles.<timestamp>`
+suffix before linking the managed replacements.
 
 ## secrets
 
@@ -168,10 +170,34 @@ brew install opencode
 ```
 
 - `./install.sh` symlinks the individual config pieces
-  (`opencode.json`, `AGENTS.md`, `agent/`, `themes/`) into
+  (`opencode.json`, global instructions, agents, skills, and `themes/`) into
   `~/.config/opencode/` - not the whole directory, since opencode installs
   its own runtime state (`node_modules`, `tui.json`, ...) there too
 - MCP server API keys are read from the secrets file - see [secrets](#secrets)
+
+### agent harnesses
+
+Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
+`configs/agents/`:
+
+- `AGENTS.md` is the canonical global instruction file.
+- `skills/` contains portable Agent Skills and is linked as a whole into each
+  harness's native global skill location. opencode reads the canonical skills
+  through its built-in compatibility paths.
+- `agents/branch-reviewer/` contains the canonical branch-reviewer additions;
+  its review procedure comes from `skills/review/SKILL.md`.
+- `harnesses/` contains settings that are genuinely native to one harness.
+
+`install.sh` renders native branch-reviewer definitions and Cursor's global
+rule into `~/.config/dotfiles/generated/agents/`, then links those files into
+the harness directories. Generated files are not committed and should not be
+edited directly.
+
+Validate canonical content and every generated target with:
+
+```bash
+configs/agents/scripts/check
+```
 
 ### vscode
 
