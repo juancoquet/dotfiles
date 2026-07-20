@@ -81,12 +81,12 @@ Every open issue has exactly one of these status labels:
 - `status:todo`: ready to be worked on.
 - `status:in-progress`: currently being worked on.
 
-Do not use status labels for terminal states:
+For a closed issue, the issue state and close reason are canonical. Any
+`status:*` label left by automatic closure is historical and must be ignored:
 
 - Completed work is closed with reason `completed`.
 - Scrapped work is closed with reason `not planned`.
 - Duplicate work is closed with reason `duplicate`.
-- Remove any `status:*` label when closing an issue.
 
 Priority is optional. The permitted priority labels are:
 
