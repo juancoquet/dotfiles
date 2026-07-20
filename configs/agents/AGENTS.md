@@ -11,9 +11,13 @@ take precedence where they are more specific.
 - If the configured documentation provider is unavailable or insufficient, use
   web search rather than relying on stale model knowledge.
 
-## Commit attribution
+## Commits
 
-Never add `Co-Authored-By` or other AI-attribution trailers to commit messages.
+- Commit completed, verified work without waiting for the user to request a
+  commit. Use focused commits that each represent a coherent work grouping.
+- Do not include unrelated user changes in a commit. Respect an explicit
+  instruction not to commit.
+- Never add `Co-Authored-By` or other AI-attribution trailers to commit messages.
 
 ## Verification
 
