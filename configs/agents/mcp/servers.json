@@ -1,0 +1,17 @@
+{
+  "context7": {
+    "transport": "stdio",
+    "launcher": "context7-mcp",
+    "authentication": {
+      "type": "environment",
+      "variable": "CONTEXT7_API_KEY"
+    }
+  },
+  "linear": {
+    "transport": "http",
+    "url": "https://mcp.linear.app/mcp",
+    "authentication": {
+      "type": "oauth"
+    }
+  }
+}

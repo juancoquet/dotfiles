@@ -169,8 +169,8 @@ ln -s ~/dotfiles/configs/obsidian/vimrc /path/to/vault/.obsidian.vimrc
 brew install opencode
 ```
 
-- `./install.sh` symlinks the individual config pieces
-  (`opencode.json`, global instructions, agents, skills, and `themes/`) into
+- `./install.sh` installs the individual config pieces
+  (generated `opencode.json`, global instructions, agents, skills, and `themes/`) into
   `~/.config/opencode/` - not the whole directory, since opencode installs
   its own runtime state (`node_modules`, `tui.json`, ...) there too
 - MCP server API keys are read from the secrets file - see [secrets](#secrets)
@@ -187,17 +187,46 @@ Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
 - `agents/branch-reviewer/` contains the canonical branch-reviewer additions;
   its review procedure comes from `skills/review/SKILL.md`.
 - `harnesses/` contains settings that are genuinely native to one harness.
+- `mcp/servers.json` defines the shared Context7 and Linear MCP servers once.
+  Harness-specific MCPs stay in the relevant native source under `harnesses/`,
+  or in `configs/opencode/opencode.json` for opencode.
 
-`install.sh` renders native branch-reviewer definitions and Cursor's global
-rule into `~/.config/dotfiles/generated/agents/`, then links those files into
-the harness directories. Generated files are not committed and should not be
-edited directly.
+`install.sh` renders native branch-reviewer, MCP, Cursor rule, Codex, and
+opencode files into `~/.config/dotfiles/generated/agents/`, then links those
+files into the harness directories. Claude's MCP entries are structurally
+merged into `~/.claude.json` because that file also contains Claude-owned
+runtime state. Generated destinations are not authoritative and should not be
+edited directly; shared and harness-specific configuration belongs in this
+repository. OAuth credentials, approvals, plugin state, and unrelated Claude
+configuration remain harness-owned and survive installer reruns.
+
+Context7 runs through a dotfiles-owned local launcher. The launcher reads
+`CONTEXT7_API_KEY` from the process environment or from
+`~/.config/dotfiles/secrets.env`, allowing GUI-launched harnesses to authenticate
+without putting the key in generated configuration or process arguments.
+
+Linear uses each harness's OAuth store. Authenticate once after first install:
+
+```bash
+claude mcp login linear
+codex mcp login linear
+cursor-agent mcp login linear
+opencode mcp auth linear
+```
+
+List the installed servers with `claude mcp list`, `codex mcp list`,
+`cursor-agent mcp list`, and `opencode mcp list`.
 
 Validate canonical content and every generated target with:
 
 ```bash
 configs/agents/scripts/check
 ```
+
+The check validates every native JSON and TOML target, verifies the Claude
+merge preserves unrelated state, and makes a real authenticated Context7 tool
+call when `CONTEXT7_API_KEY` is available. It reports an explicit skip when the
+credential has not been installed.
 
 ### vscode
 

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SECRETS_FILE="${DOTFILES_SECRETS_FILE:-$HOME/.config/dotfiles/secrets.env}"
+PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+export PATH
+
+if [ -z "${CONTEXT7_API_KEY:-}" ] && [ -f "$SECRETS_FILE" ]; then
+	set -a
+	# shellcheck disable=SC1090
+	source "$SECRETS_FILE"
+	set +a
+fi
+
+if [ -z "${CONTEXT7_API_KEY:-}" ]; then
+	echo "CONTEXT7_API_KEY is not set and was not found in $SECRETS_FILE" >&2
+	exit 1
+fi
+
+if ! command -v npx >/dev/null 2>&1; then
+	echo "npx is required to run the Context7 MCP server" >&2
+	exit 1
+fi
+
+exec npx -y @upstash/context7-mcp

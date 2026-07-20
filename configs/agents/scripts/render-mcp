@@ -1,0 +1,170 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import json
+import sys
+import tomllib
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TypeGuard, cast
+
+
+JsonObject = dict[str, object]
+
+
+@dataclass(frozen=True)
+class Arguments:
+    root: Path
+    output: Path
+    context7_command: Path
+
+
+def is_object_dict(value: object) -> TypeGuard[dict[object, object]]:
+    return isinstance(value, dict)
+
+
+def require_object(value: object, source: Path | str) -> JsonObject:
+    if not is_object_dict(value):
+        raise ValueError(f"expected an object in {source}")
+
+    result: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            raise ValueError(f"expected string keys in {source}")
+        result[key] = item
+    return result
+
+
+def load_json(path: Path) -> JsonObject:
+    value = cast(object, json.loads(path.read_text()))
+    return require_object(value, path)
+
+
+def write_json(path: Path, value: JsonObject) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    _ = path.write_text(json.dumps(value, indent=2) + "\n")
+
+
+def merge_servers(base: JsonObject, key: str, shared: JsonObject, source: Path) -> JsonObject:
+    existing = require_object(base.get(key, {}), f"{key} in {source}")
+
+    overlap = sorted(existing.keys() & shared.keys())
+    if overlap:
+        names = ", ".join(overlap)
+        raise ValueError(f"shared MCP servers duplicated in {source}: {names}")
+
+    existing.update(shared)
+    base[key] = existing
+    return base
+
+
+def render(args: Arguments) -> None:
+    root = args.root
+    output = args.output
+    registry_path = root / "mcp" / "servers.json"
+    registry = load_json(registry_path)
+
+    context7_value = registry.get("context7")
+    linear_value = registry.get("linear")
+    if context7_value is None or linear_value is None:
+        raise ValueError(f"{registry_path} must define context7 and linear")
+    context7 = require_object(context7_value, f"context7 in {registry_path}")
+    linear = require_object(linear_value, f"linear in {registry_path}")
+    if context7.get("transport") != "stdio" or context7.get("launcher") != "context7-mcp":
+        raise ValueError("context7 must use the dotfiles-owned stdio launcher")
+    if context7.get("authentication") != {
+        "type": "environment",
+        "variable": "CONTEXT7_API_KEY",
+    }:
+        raise ValueError("context7 must use CONTEXT7_API_KEY authentication")
+    if linear.get("transport") != "http" or linear.get("authentication") != {"type": "oauth"}:
+        raise ValueError("linear must use HTTP with harness-owned OAuth")
+
+    linear_url = linear.get("url")
+    if not isinstance(linear_url, str):
+        raise ValueError("linear must define a URL")
+
+    claude_source = root / "harnesses" / "claude" / "mcp.json"
+    claude_shared: JsonObject = {
+        "context7": {
+            "type": "stdio",
+            "command": str(args.context7_command),
+            "args": [],
+        },
+        "linear": {
+            "type": "http",
+            "url": linear_url,
+        },
+    }
+    write_json(
+        output / "claude" / "mcp.json",
+        merge_servers(load_json(claude_source), "mcpServers", claude_shared, claude_source),
+    )
+
+    cursor_source = root / "harnesses" / "cursor" / "mcp.json"
+    cursor_shared: JsonObject = {
+        "context7": {
+            "command": str(args.context7_command),
+            "args": [],
+        },
+        "linear": {
+            "url": linear_url,
+        },
+    }
+    write_json(
+        output / "cursor" / "mcp.json",
+        merge_servers(load_json(cursor_source), "mcpServers", cursor_shared, cursor_source),
+    )
+
+    opencode_source = root.parent / "opencode" / "opencode.json"
+    opencode_shared: JsonObject = {
+        "context7": {
+            "type": "local",
+            "command": [str(args.context7_command)],
+            "enabled": True,
+        },
+        "linear": {
+            "type": "remote",
+            "url": linear_url,
+            "enabled": True,
+        },
+    }
+    write_json(
+        output / "opencode" / "opencode.json",
+        merge_servers(load_json(opencode_source), "mcp", opencode_shared, opencode_source),
+    )
+
+    codex_source = root / "harnesses" / "codex" / "config.toml"
+    codex_text = codex_source.read_text()
+    codex_value: object = tomllib.loads(codex_text)
+    codex_config = require_object(codex_value, codex_source)
+    existing_codex = require_object(
+        codex_config.get("mcp_servers", {}), f"mcp_servers in {codex_source}"
+    )
+    overlap = sorted(existing_codex.keys() & registry.keys())
+    if overlap:
+        names = ", ".join(overlap)
+        raise ValueError(f"shared MCP servers duplicated in {codex_source}: {names}")
+
+    codex_output = output / "codex" / "config.toml"
+    codex_output.parent.mkdir(parents=True, exist_ok=True)
+    _ = codex_output.write_text(
+        codex_text.rstrip()
+        + "\n\n[mcp_servers.context7]\n"
+        + f"command = {json.dumps(str(args.context7_command))}\n"
+        + "args = []\n\n"
+        + "[mcp_servers.linear]\n"
+        + f"url = {json.dumps(linear_url)}\n"
+    )
+
+
+def parse_args(argv: Sequence[str]) -> Arguments:
+    if len(argv) != 4:
+        raise SystemExit(f"usage: {argv[0]} <root> <output> <context7-command>")
+    return Arguments(root=Path(argv[1]), output=Path(argv[2]), context7_command=Path(argv[3]))
+
+
+if __name__ == "__main__":
+    render(parse_args(sys.argv))

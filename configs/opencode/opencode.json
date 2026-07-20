@@ -2,14 +2,6 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "openrouter/anthropic/claude-opus-4.6",
   "mcp": {
-    "context7": {
-      "type": "remote",
-      "url": "https://mcp.context7.com/mcp",
-      "headers": {
-        "CONTEXT7_API_KEY": "{env:CONTEXT7_API_KEY}"
-      },
-      "enabled": true
-    },
     "brave-search": {
       "type": "local",
       "command": ["npx", "-y", "@brave/brave-search-mcp-server"],
@@ -26,11 +18,6 @@
     "chrome-devtools": {
       "type": "local",
       "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--headless=true"],
-      "enabled": true
-    },
-    "linear-server": {
-      "type": "remote",
-      "url": "https://mcp.linear.app/mcp",
       "enabled": true
     }
   }

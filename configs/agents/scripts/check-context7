@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import json
+import select
+import subprocess
+import sys
+import time
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import IO, TypeGuard, cast
+
+
+JsonObject = dict[str, object]
+
+
+@dataclass(frozen=True)
+class Arguments:
+    launcher: Path
+
+
+def is_object_dict(value: object) -> TypeGuard[dict[object, object]]:
+    return isinstance(value, dict)
+
+
+def is_object_list(value: object) -> TypeGuard[list[object]]:
+    return isinstance(value, list)
+
+
+def require_object(value: object, source: str) -> JsonObject:
+    if not is_object_dict(value):
+        raise ValueError(f"expected an object in {source}")
+
+    result: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            raise ValueError(f"expected string keys in {source}")
+        result[key] = item
+    return result
+
+
+def send(process: subprocess.Popen[str], message: JsonObject) -> None:
+    if process.stdin is None:
+        raise RuntimeError("Context7 stdin is unavailable")
+    _ = process.stdin.write(json.dumps(message) + "\n")
+    process.stdin.flush()
+
+
+def receive(process: subprocess.Popen[str], request_id: int, timeout: float = 30) -> JsonObject:
+    if process.stdout is None:
+        raise RuntimeError("Context7 stdout is unavailable")
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        remaining = deadline - time.monotonic()
+        ready, _, _ = select.select([process.stdout], [], [], remaining)
+        if not ready:
+            break
+        line = process.stdout.readline()
+        if not line:
+            break
+        response_value = cast(object, json.loads(line))
+        response = require_object(response_value, "Context7 response")
+        if response.get("id") == request_id:
+            return response
+
+    stderr = read_stderr(process.stderr)
+    raise RuntimeError(f"Context7 did not answer request {request_id}: {stderr}")
+
+
+def read_stderr(stream: IO[str] | None) -> str:
+    if stream is None:
+        return "no diagnostic output"
+    ready, _, _ = select.select([stream], [], [], 0)
+    if not ready:
+        return "no diagnostic output"
+    return stream.readline().strip() or "no diagnostic output"
+
+
+def check(launcher: Path) -> None:
+    process = subprocess.Popen(
+        [str(launcher)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        send(
+            process,
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "dotfiles-check", "version": "1.0"},
+                },
+            },
+        )
+        initialized = receive(process, 1)
+        if initialized.get("error"):
+            raise RuntimeError(f"Context7 initialize failed: {initialized['error']}")
+
+        send(process, {"jsonrpc": "2.0", "method": "notifications/initialized", "params": {}})
+        send(
+            process,
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/call",
+                "params": {
+                    "name": "resolve-library-id",
+                    "arguments": {
+                        "libraryName": "Python",
+                        "query": "Find the official Python documentation",
+                    },
+                },
+            },
+        )
+        called = receive(process, 2)
+        if called.get("error"):
+            raise RuntimeError(f"Context7 tool call failed: {called['error']}")
+        result = require_object(called.get("result"), "Context7 tool result")
+        if result.get("isError") is True:
+            raise RuntimeError(f"Context7 returned an unsuccessful tool result: {result}")
+        content = result.get("content")
+        if not is_object_list(content) or not content:
+            raise RuntimeError("Context7 tool call returned no content")
+        text_parts: list[str] = []
+        for item in content:
+            item_object = require_object(item, "Context7 tool content")
+            item_text = item_object.get("text", "")
+            if not isinstance(item_text, str):
+                raise RuntimeError("Context7 returned non-text tool content")
+            text_parts.append(item_text)
+        text = "\n".join(text_parts)
+        if "Available Libraries:" not in text:
+            raise RuntimeError(f"Context7 authentication check failed: {text}")
+    finally:
+        process.terminate()
+        try:
+            _ = process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            _ = process.wait(timeout=5)
+
+
+def parse_args(argv: Sequence[str]) -> Arguments:
+    if len(argv) != 2:
+        raise SystemExit(f"usage: {argv[0]} <launcher>")
+    return Arguments(launcher=Path(argv[1]))
+
+
+if __name__ == "__main__":
+    arguments = parse_args(sys.argv)
+    check(arguments.launcher)
+    print("authenticated Context7 tool call passed")

@@ -12,6 +12,19 @@ OUTPUT="$1"
 REVIEW_SKILL="$ROOT/skills/review/SKILL.md"
 PREAMBLE="$ROOT/agents/branch-reviewer/preamble.md"
 OUTPUT_CONTRACT="$ROOT/agents/branch-reviewer/output.md"
+CONTEXT7_COMMAND="${DOTFILES_CONTEXT7_COMMAND:-$HOME/.config/dotfiles/bin/context7-mcp}"
+
+for candidate in python3.13 python3.12 python3.11; do
+	if command -v "$candidate" >/dev/null 2>&1; then
+		PYTHON="$candidate"
+		break
+	fi
+done
+
+if [ -z "${PYTHON:-}" ]; then
+	echo "Python 3.11 or newer is required to render agent configuration" >&2
+	exit 1
+fi
 
 case "$OUTPUT" in
 	"" | "/")
@@ -27,6 +40,8 @@ mkdir -p \
 	"$OUTPUT/cursor/agents" \
 	"$OUTPUT/cursor/rules" \
 	"$OUTPUT/opencode/agent"
+
+"$PYTHON" "$ROOT/scripts/render-mcp" "$ROOT" "$OUTPUT" "$CONTEXT7_COMMAND"
 
 BODY="$OUTPUT/branch-reviewer-body.md"
 cat "$PREAMBLE" >"$BODY"
