@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DOTFILES="$(cd "$ROOT/../.." && pwd)"
+OUTPUT="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-agents.XXXXXX")"
+trap 'rm -rf "$OUTPUT"' EXIT
+
+for candidate in python3.13 python3.12 python3.11 python3; do
+	if command -v "$candidate" >/dev/null 2>&1 && \
+		"$candidate" -c 'import tomllib' >/dev/null 2>&1; then
+		PYTHON="$candidate"
+		break
+	fi
+done
+
+if [ -z "${PYTHON:-}" ]; then
+	echo "Python 3.11 or newer is required to validate TOML" >&2
+	exit 1
+fi
+
+"$ROOT/scripts/render" "$OUTPUT"
+
+expected=(
+	"claude/agents/branch-reviewer.md"
+	"codex/agents/branch-reviewer.toml"
+	"cursor/agents/branch-reviewer.md"
+	"cursor/rules/global-agent-instructions.mdc"
+	"opencode/agent/branch-reviewer.md"
+)
+
+for file in "${expected[@]}"; do
+	test -s "$OUTPUT/$file"
+done
+
+test "$(find "$OUTPUT" -type f | wc -l | tr -d ' ')" = "${#expected[@]}"
+
+for skill in "$ROOT"/skills/*/SKILL.md; do
+	directory_name="$(basename "$(dirname "$skill")")"
+	declared_name="$(awk '/^name: / { print $2; exit }' "$skill")"
+	test "$directory_name" = "$declared_name"
+	grep -q '^description: .' "$skill"
+done
+
+"$PYTHON" -c 'import json, pathlib; json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())' \
+	"$ROOT/harnesses/claude/settings.json"
+"$PYTHON" -c 'import json, pathlib; json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())' \
+	"$DOTFILES/configs/opencode/opencode.json"
+"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+	"$ROOT/harnesses/codex/config.toml"
+"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+	"$OUTPUT/codex/agents/branch-reviewer.toml"
+
+grep -q 'Return only a JSON array' "$OUTPUT/claude/agents/branch-reviewer.md"
+grep -q 'do not assume that the repository defines a custom review skill' \
+	"$OUTPUT/opencode/agent/branch-reviewer.md"
+
+echo "agent config checks passed"

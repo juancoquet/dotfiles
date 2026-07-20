@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [ "$#" -ne 1 ]; then
+	echo "usage: $0 <output-directory>" >&2
+	exit 2
+fi
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUTPUT="$1"
+REVIEW_SKILL="$ROOT/skills/review/SKILL.md"
+PREAMBLE="$ROOT/agents/branch-reviewer/preamble.md"
+OUTPUT_CONTRACT="$ROOT/agents/branch-reviewer/output.md"
+
+case "$OUTPUT" in
+	"" | "/")
+		echo "refusing unsafe output directory: $OUTPUT" >&2
+		exit 2
+		;;
+esac
+
+rm -rf "$OUTPUT"
+mkdir -p \
+	"$OUTPUT/claude/agents" \
+	"$OUTPUT/codex/agents" \
+	"$OUTPUT/cursor/agents" \
+	"$OUTPUT/cursor/rules" \
+	"$OUTPUT/opencode/agent"
+
+BODY="$OUTPUT/branch-reviewer-body.md"
+cat "$PREAMBLE" >"$BODY"
+printf '\n' >>"$BODY"
+awk '
+	NR == 1 && $0 == "---" { in_frontmatter = 1; next }
+	in_frontmatter && $0 == "---" { in_frontmatter = 0; next }
+	!in_frontmatter { print }
+' "$REVIEW_SKILL" >>"$BODY"
+printf '\n' >>"$BODY"
+cat "$OUTPUT_CONTRACT" >>"$BODY"
+
+cat >"$OUTPUT/claude/agents/branch-reviewer.md" <<'EOF'
+---
+name: branch-reviewer
+description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
+tools: Bash, Read, Grep, Glob
+---
+
+EOF
+cat "$BODY" >>"$OUTPUT/claude/agents/branch-reviewer.md"
+
+cat >"$OUTPUT/opencode/agent/branch-reviewer.md" <<'EOF'
+---
+description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
+mode: subagent
+permission:
+  edit: deny
+---
+
+EOF
+cat "$BODY" >>"$OUTPUT/opencode/agent/branch-reviewer.md"
+
+cat >"$OUTPUT/cursor/agents/branch-reviewer.md" <<'EOF'
+---
+name: branch-reviewer
+description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
+model: inherit
+readonly: true
+---
+
+EOF
+cat "$BODY" >>"$OUTPUT/cursor/agents/branch-reviewer.md"
+
+cat >"$OUTPUT/codex/agents/branch-reviewer.toml" <<'EOF'
+name = "branch-reviewer"
+description = "Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review."
+sandbox_mode = "read-only"
+developer_instructions = '''
+EOF
+cat "$BODY" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
+printf "\n'''\n" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
+
+cat >"$OUTPUT/cursor/rules/global-agent-instructions.mdc" <<'EOF'
+---
+description: Juan's global agent instructions
+alwaysApply: true
+---
+
+EOF
+cat "$ROOT/AGENTS.md" >>"$OUTPUT/cursor/rules/global-agent-instructions.mdc"
+
+rm "$BODY"
