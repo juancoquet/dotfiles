@@ -24,10 +24,14 @@ fi
 
 expected=(
 	"claude/agents/branch-reviewer.md"
+	"claude/mcp.json"
 	"codex/agents/branch-reviewer.toml"
+	"codex/config.toml"
 	"cursor/agents/branch-reviewer.md"
+	"cursor/mcp.json"
 	"cursor/rules/global-agent-instructions.mdc"
 	"opencode/agent/branch-reviewer.md"
+	"opencode/opencode.json"
 )
 
 for file in "${expected[@]}"; do
@@ -47,13 +51,96 @@ done
 	"$ROOT/harnesses/claude/settings.json"
 "$PYTHON" -c 'import json, pathlib; json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())' \
 	"$DOTFILES/configs/opencode/opencode.json"
+"$PYTHON" -c 'import json, pathlib; json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())' \
+	"$ROOT/mcp/servers.json"
 "$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$ROOT/harnesses/codex/config.toml"
+"$PYTHON" - "$ROOT/harnesses/codex/config.toml" <<'PY'
+import pathlib
+import sys
+import tomllib
+
+
+def strings(value):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            yield key
+            yield from strings(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from strings(item)
+    elif isinstance(value, str):
+        yield value
+
+
+config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
+paths = [value for value in strings(config) if value.startswith(("/", "~/"))]
+assert not paths, f"Codex source config contains machine-specific paths: {paths}"
+PY
 "$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/agents/branch-reviewer.toml"
+"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+	"$OUTPUT/codex/config.toml"
+
+"$PYTHON" - "$OUTPUT" <<'PY'
+import json
+import os
+import pathlib
+import sys
+import tomllib
+
+output = pathlib.Path(sys.argv[1])
+expected = {"context7", "linear"}
+
+claude = json.loads((output / "claude/mcp.json").read_text())["mcpServers"]
+cursor = json.loads((output / "cursor/mcp.json").read_text())["mcpServers"]
+codex = tomllib.loads((output / "codex/config.toml").read_text())["mcp_servers"]
+opencode = json.loads((output / "opencode/opencode.json").read_text())["mcp"]
+
+assert set(claude) == expected
+assert set(cursor) == expected
+assert expected <= set(codex)
+assert expected < set(opencode)
+assert {"brave-search", "pdf-reader", "chrome-devtools"} < set(opencode)
+assert "linear-server" not in opencode
+
+secret = os.environ.get("CONTEXT7_API_KEY")
+if secret:
+    for path in output.rglob("*"):
+        if path.is_file():
+            assert secret not in path.read_text()
+PY
+
+CLAUDE_FIXTURE="$OUTPUT/claude-fixture.json"
+CLAUDE_STATE="$OUTPUT/claude-state.json"
+printf '%s\n' '{"theme":"dark","mcpServers":{"unrelated":{"command":"example"},"stale":{"command":"old"}}}' >"$CLAUDE_FIXTURE"
+printf '%s\n' '{"managedServers":["stale"]}' >"$CLAUDE_STATE"
+"$PYTHON" "$ROOT/scripts/install-claude-mcp" \
+	"$OUTPUT/claude/mcp.json" "$CLAUDE_FIXTURE" "$CLAUDE_STATE"
+"$PYTHON" - "$CLAUDE_FIXTURE" "$CLAUDE_STATE" <<'PY'
+import json
+import pathlib
+import sys
+
+destination = json.loads(pathlib.Path(sys.argv[1]).read_text())
+state = json.loads(pathlib.Path(sys.argv[2]).read_text())
+assert destination["theme"] == "dark"
+assert set(destination["mcpServers"]) == {"context7", "linear", "unrelated"}
+assert state == {"managedServers": ["context7", "linear"]}
+PY
 
 grep -q 'Return only a JSON array' "$OUTPUT/claude/agents/branch-reviewer.md"
 grep -q 'do not assume that the repository defines a custom review skill' \
 	"$OUTPUT/opencode/agent/branch-reviewer.md"
+
+if [ -f "$HOME/.config/dotfiles/secrets.env" ] && \
+	grep -q '^CONTEXT7_API_KEY=' "$HOME/.config/dotfiles/secrets.env"; then
+	env -u CONTEXT7_API_KEY \
+		"$PYTHON" "$ROOT/scripts/check-context7" "$ROOT/scripts/context7-mcp"
+elif [ -n "${CONTEXT7_API_KEY:-}" ]; then
+	"$PYTHON" "$ROOT/scripts/check-context7" "$ROOT/scripts/context7-mcp"
+else
+	echo "authenticated Context7 check skipped: CONTEXT7_API_KEY is unavailable"
+fi
 
 echo "agent config checks passed"

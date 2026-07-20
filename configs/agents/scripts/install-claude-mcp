@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import json
+import os
+import stat
+import sys
+import tempfile
+from collections.abc import Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TypeGuard, cast
+
+
+JsonObject = dict[str, object]
+
+
+@dataclass(frozen=True)
+class Arguments:
+    generated: Path
+    destination: Path
+    state: Path
+
+
+def is_object_dict(value: object) -> TypeGuard[dict[object, object]]:
+    return isinstance(value, dict)
+
+
+def is_object_list(value: object) -> TypeGuard[list[object]]:
+    return isinstance(value, list)
+
+
+def require_object(value: object, source: Path | str) -> JsonObject:
+    if not is_object_dict(value):
+        raise ValueError(f"expected an object in {source}")
+
+    result: JsonObject = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            raise ValueError(f"expected string keys in {source}")
+        result[key] = item
+    return result
+
+
+def load_object(path: Path, *, missing_ok: bool = False) -> JsonObject:
+    if missing_ok and not path.exists():
+        return {}
+    value = cast(object, json.loads(path.read_text()))
+    return require_object(value, path)
+
+
+def write_atomic(path: Path, value: object, mode: int) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w") as file:
+            json.dump(value, file, indent=2)
+            _ = file.write("\n")
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def install(args: Arguments) -> None:
+    generated = load_object(args.generated)
+    current = require_object(
+        generated.get("mcpServers"), f"mcpServers in {args.generated}"
+    )
+
+    destination = load_object(args.destination, missing_ok=True)
+    destination_servers = require_object(
+        destination.get("mcpServers", {}), f"mcpServers in {args.destination}"
+    )
+
+    state = load_object(args.state, missing_ok=True)
+    previous = state.get("managedServers", [])
+    if not is_object_list(previous):
+        raise ValueError(f"expected managedServers to be a string array in {args.state}")
+    previous_names: list[str] = []
+    for name in previous:
+        if not isinstance(name, str):
+            raise ValueError(f"expected managedServers to be a string array in {args.state}")
+        previous_names.append(name)
+
+    for name in previous_names:
+        _ = destination_servers.pop(name, None)
+    destination_servers.update(current)
+    destination["mcpServers"] = destination_servers
+
+    mode = 0o600
+    if args.destination.exists():
+        mode = stat.S_IMODE(args.destination.stat().st_mode)
+    write_atomic(args.destination, destination, mode)
+    write_atomic(args.state, {"managedServers": sorted(current)}, 0o600)
+
+
+def parse_args(argv: Sequence[str]) -> Arguments:
+    if len(argv) != 4:
+        raise SystemExit(f"usage: {argv[0]} <generated> <destination> <state>")
+    return Arguments(
+        generated=Path(argv[1]), destination=Path(argv[2]), state=Path(argv[3])
+    )
+
+
+if __name__ == "__main__":
+    install(parse_args(sys.argv))
