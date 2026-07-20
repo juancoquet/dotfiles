@@ -1,0 +1,4 @@
+interface:
+  display_name: "Next Work"
+  short_description: "Rank available work and recommend one issue"
+  default_prompt: "Use $next to decide what we should work on next."
