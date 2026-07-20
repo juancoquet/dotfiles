@@ -34,10 +34,10 @@ that does not materially expand the task.
   requires it.
 - Prefer typed models over dictionaries at function boundaries. A caller
   should understand the contract from the signature without explanatory prose.
-- Scrutinize every use of `dict.get(...)`: it often hides a missing-key bug or
-  widens a precise type with `None`. Use it only when absence is part of the
-  contract and handle that case explicitly; use indexed access for required
-  keys.
+- Treat every use of `dict.get(...)` as a code smell: it often hides a
+  missing-key bug or widens a precise type with `None`. Use it only when
+  absence is part of the contract and handle that case explicitly; use indexed
+  access for required keys.
 - Construct Pydantic models from known typed values with explicit constructor
   keyword arguments. Do not assemble a dictionary with `model_dump()` and feed
   it into `model_validate()` when static checking can verify the constructor.
