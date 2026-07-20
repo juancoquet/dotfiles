@@ -11,6 +11,14 @@ take precedence where they are more specific.
 - If the configured documentation provider is unavailable or insufficient, use
   web search rather than relying on stale model knowledge.
 
+## Bug fixes
+
+- Fix bugs with red-green-refactor: write a failing test that reproduces the
+  bug, confirm it fails for the expected reason, write the minimal change that
+  makes it pass, then refactor if necessary.
+- Do not consider a bug fixed until a test demonstrates the original failure
+  and its resolution.
+
 ## Commits
 
 - Commit completed, verified work without waiting for the user to request a
