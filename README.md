@@ -49,6 +49,12 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/dotfiles-key.txt sops secrets.enc.yaml
 This opens the decrypted file in `$EDITOR` and re-encrypts on save. Recipients
 are configured in `.sops.yaml`.
 
+## bundled media
+
+Files under `image-wallet/`, `sounds/`, and `wallpapers/` are third-party media
+retained for personal use. Copyright remains with their original creators;
+these files are not licensed for reuse or redistribution by this repository.
+
 ### keyboard
 
 - install [karabiner](https://karabiner-elements.pqrs.org/).

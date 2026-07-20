@@ -27,7 +27,7 @@ export PATH="$PATH:/usr/bin/"
 export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
 command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
 export PATH="$PATH:$HOME/.config/emacs/bin"
-export PATH=/home/juan/.opencode/bin:$PATH
+export PATH="$HOME/.opencode/bin:$PATH"
 
 # poetry package manager (python)  -- -- -- --
 export PATH="$PATH:$HOME/.local/bin"
@@ -191,4 +191,3 @@ export NVM_DIR="$HOME/.nvm"
 export BUN_INSTALL="$HOME/.bun"
 [ -s "$BUN_INSTALL/_bun" ] && source "$BUN_INSTALL/_bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
