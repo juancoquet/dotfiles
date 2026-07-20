@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "sh configs/agents/trackers/gh-issues/gh-issues-prime --cursor"
+      }
+    ]
+  }
+}

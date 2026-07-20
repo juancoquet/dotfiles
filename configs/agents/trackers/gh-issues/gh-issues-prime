@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -eu
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+context="$root/gh-issues-context.md"
+
+case "${1:-}" in
+	"")
+		cat "$context"
+		;;
+	--cursor)
+		if command -v jq >/dev/null 2>&1; then
+			jq -Rs '{additional_context: .}' <"$context"
+		elif command -v python3 >/dev/null 2>&1; then
+			python3 -c 'import json, pathlib, sys; print(json.dumps({"additional_context": pathlib.Path(sys.argv[1]).read_text()}))' "$context"
+		fi
+		;;
+	*)
+		echo "usage: $0 [--cursor]" >&2
+		exit 2
+		;;
+esac
