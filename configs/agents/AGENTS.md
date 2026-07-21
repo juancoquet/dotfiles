@@ -25,9 +25,11 @@ take precedence where they are more specific.
   commit. Use focused commits that each represent a coherent work grouping.
 - Do not include unrelated changes of mine in a commit. Respect an explicit
   instruction not to commit.
-- Before committing, verify the effective Git `user.email`. If it is not
-  `69824312+juancoquet@users.noreply.github.com`, set that address at repository
-  scope before committing. Never expose a private email in commit metadata.
+- Before committing, verify the effective Git `user.email` is my GitHub
+  noreply address — `<id>+<login>@users.noreply.github.com`, where `id` and
+  `login` come from `gh api user`. If it differs, set the noreply address at
+  repository scope before committing. Never expose a private email in commit
+  metadata.
 - Never add `Co-Authored-By` or other AI-attribution trailers to commit messages.
 
 ## Verification
