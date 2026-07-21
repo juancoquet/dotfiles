@@ -17,32 +17,14 @@ clearly reproducible bug that keeps getting skipped because it is not urgent is
 exactly the point: if it is safe to do and would otherwise not get done, picking
 it up is a win.
 
-Remain read-only: never create, claim, edit, close, or reprioritise work. Report
-suspected metadata problems and offer to fix them instead of changing them
-unprompted.
-
 ## 1. Establish the Tracker Contract
 
-Identify the repository's canonical tracker from primed session context and
-repository instructions. Follow that tracker's documented workflow, field
-semantics, and relationship semantics. Use its available integration and
-built-in help when query syntax or capabilities are unclear.
-
-Do not combine multiple backlogs. If the canonical tracker is ambiguous or its
-data is unavailable, explain the ambiguity or failure and stop without making a
-recommendation.
-
-Translate provider data into these concepts without requiring identical names:
-
-- **Candidate:** open work in a startable state, of a workable type, with no
-  unresolved blocker.
-- **Container:** an epic, project, initiative, milestone, or other grouping that
-  supplies context but is not itself directly workable.
-- **Priority:** the tracker's ordered urgency levels. Here priority is a weak
-  signal — low priority does not disqualify a candidate. Keep explicitly
-  deferred work visible but do not recommend it while other work is viable.
-- **Relationships:** blockers, work unblocked by completion, parent or container
-  membership, and any declared sequence.
+Read and follow the shared selection contract in
+[TRACKER-CONTRACT.md](../next-common/TRACKER-CONTRACT.md): stay read-only,
+identify the canonical tracker, stop if it is ambiguous or unavailable, and use
+the vocabulary it defines. One emphasis for AFK work: priority is only a weak
+signal here — a low-priority item is still a valid recommendation, and clearing
+safe, neglected work is the whole point.
 
 ## 2. Gather Startable Candidates
 

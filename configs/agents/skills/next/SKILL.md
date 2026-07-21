@@ -6,33 +6,15 @@ description: Decide what work should be done next from a repository's configured
 # Choose the Next Piece of Work
 
 Survey the configured issue tracker, rank work that can actually be started, and
-recommend one item. Remain read-only: never create, claim, edit, close, or
-reprioritise work. Report suspected metadata problems and offer to fix them
-instead of changing them unprompted.
+recommend one item.
 
 ## 1. Establish the Tracker Contract
 
-Identify the repository's canonical tracker from primed session context and
-repository instructions. Follow that tracker's documented workflow, field
-semantics, and relationship semantics. Use its available integration and
-built-in help when query syntax or capabilities are unclear.
-
-Do not combine multiple backlogs. If the canonical tracker is ambiguous or its
-data is unavailable, explain the ambiguity or failure and stop without making a
-recommendation.
-
-Translate provider data into these concepts without requiring identical names:
-
-- **In progress:** open work already claimed or actively underway.
-- **Candidate:** open work in a startable state, of a workable type, with no
-  unresolved blocker.
-- **Container:** an epic, project, initiative, milestone, or other grouping that
-  supplies context but is not itself directly workable.
-- **Priority:** the tracker's ordered urgency levels. Treat an absent priority as
-  normal unless the tracker contract says otherwise; keep explicitly deferred
-  work visible but do not recommend it while other work is viable.
-- **Relationships:** blockers, work unblocked by completion, parent or container
-  membership, and any declared sequence.
+Read and follow the shared selection contract in
+[TRACKER-CONTRACT.md](../next-common/TRACKER-CONTRACT.md): stay read-only,
+identify the canonical tracker, stop if it is ambiguous or unavailable, and use
+the vocabulary it defines. Preserve the tracker's priority ordering when ranking
+below.
 
 ## 2. Inspect Work Already in Progress
 
