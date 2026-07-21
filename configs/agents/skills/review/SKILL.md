@@ -11,7 +11,7 @@ branch. Report actionable findings; do not modify files.
 
 ## 1. Resolve the Base
 
-Use a base branch supplied by the user. Otherwise, determine the repository's
+Use a base branch I supply. Otherwise, determine the repository's
 default branch from `refs/remotes/origin/HEAD`. If that is unavailable, inspect
 the repository and choose the first applicable conventional base such as
 `main`, `master`, or `development`. State the chosen base when it is not obvious.

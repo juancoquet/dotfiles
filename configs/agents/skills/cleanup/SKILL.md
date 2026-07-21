@@ -85,5 +85,5 @@ getting confirmation for it.
 ## 7. Report
 
 After acting, list what was removed and what was deliberately left in place
-(dirty worktrees, unmerged branches with no gone upstream, anything the user
+(dirty worktrees, unmerged branches with no gone upstream, anything I
 declined), so there's a clear record of the outcome.
