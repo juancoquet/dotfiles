@@ -105,6 +105,8 @@ consumer that needed it. Keep it narrow; do not add operations speculatively.
 
 ## Code Shape
 
+- Name functions and methods as verbs (or verb phrases) that describe the
+  action they perform.
 - Organise files from their primary public subject down to supporting and
   private details.
 - Use guard clauses to reduce nesting.
