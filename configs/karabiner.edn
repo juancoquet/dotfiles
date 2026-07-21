@@ -17,6 +17,7 @@
   }
   :main [;; left-hand on CAGS
     ;; rules that only apply to non-Corne keyboards
+    {:des "eject to lock screen" :rules [[:eject "osascript -e 'tell application \"System Events\" to keystroke \"q\" using {control down, command down}'"]]}
     {:des "caps lock to esc/ctrl" :rules [[:##caps_lock :left_control [:!corne] {:alone :escape}]]}
     {:des "quote to ctrl" :rules [[:quote :left_control [:!corne] {:alone :quote}]]}
     {:des "esc to caps lock" :rules [[:escape :caps_lock [:!corne]]]}
