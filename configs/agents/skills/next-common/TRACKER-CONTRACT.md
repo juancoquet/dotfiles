@@ -1,9 +1,9 @@
 # Shared Contract: Selecting Work From the Tracker
 
-Both `[[next]]` and `[[next-afk]]` recommend work from the configured issue
-tracker without changing anything. This file holds the machinery they share;
-each skill's `SKILL.md` supplies its own selection lens and ranking on top.
-Read and follow this file whenever either skill points you here.
+This file holds the machinery shared by the skills that recommend work from the
+configured issue tracker without changing anything. Each such skill's `SKILL.md`
+supplies its own selection lens and ranking on top. Read and follow this file
+whenever a skill points you here.
 
 ## Stay Read-Only
 

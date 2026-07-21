@@ -7,10 +7,9 @@ description: Decide what work should be done next while I am away from the keybo
 
 Survey the configured issue tracker and recommend one item an agent can start
 and finish autonomously, with no clarification from me, no product or design
-judgement, and a small, reversible blast radius. This is `[[next]]` with a
-different lens: I am away, so the decisive question is not "what is most
-important" but "what can be safely completed unattended and would otherwise
-languish."
+judgement, and a small, reversible blast radius. I am away, so the decisive
+question is not "what is most important" but "what can be safely completed
+unattended and would otherwise languish."
 
 Deliberately favour small, low-priority, well-specified work. A simple task or a
 clearly reproducible bug that keeps getting skipped because it is not urgent is
