@@ -2,8 +2,8 @@
 
 This file holds the machinery shared by the skills that recommend work from the
 configured issue tracker without changing anything. Each such skill's `SKILL.md`
-supplies its own selection lens and ranking on top. Read and follow this file
-whenever a skill points you here.
+supplies its own selection lens, ranking, and report shape on top. Read and
+follow this file whenever a skill points you here.
 
 ## Stay Read-Only
 
@@ -37,3 +37,25 @@ Translate provider data into these concepts without requiring identical names:
   decides how heavily priority weighs in its own ranking.
 - **Relationships:** blockers, work unblocked by completion, parent or container
   membership, and any declared sequence.
+
+## Build the Candidate Set
+
+Find every unblocked item in the tracker's startable state whose type represents
+work rather than a container. Read each candidate's full description, not just
+its title. Load the relevant parents, dependencies, dependants, and referenced
+sibling items needed to judge scope and ordering.
+
+Exclude closed or otherwise terminal work, blocked work, and containers from the
+candidate set; use containers and completed dependencies as context. If metadata
+appears stale or contradictory, keep the item visible with a clear warning rather
+than silently repairing or discarding it.
+
+## Ranking and Reporting Conventions
+
+Rank by judgement, not a numeric score; when candidates are close, name the
+trade-off that separates them. Keep candidate summaries to one or two sentences
+grounded in the full description. Cap any candidate table at about ten rows and
+summarise the count and shape of what you omit in one short paragraph. Recommend
+exactly one item, mention a runner-up only when the choice is genuinely close
+(saying what would change the decision), and end by offering to pick up the
+recommended work.

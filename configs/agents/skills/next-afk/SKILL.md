@@ -27,19 +27,10 @@ safe, neglected work is the whole point.
 
 ## 2. Gather Startable Candidates
 
-Find every unblocked item in the tracker's startable state whose type represents
-work rather than a container. Read each candidate's full description, not just
-its title. Load the relevant parents, dependencies, and referenced sibling items
-needed to judge scope and safety.
-
-Prefer types that tend to be self-contained — concrete tasks and small, clearly
-reproducible bugs — but let the autonomy assessment in the next step decide, not
-the type label alone. Exclude closed or terminal work, blocked work, and
-containers from the candidate set; use containers and completed dependencies as
-context.
-
-If metadata appears stale or contradictory, keep the item visible with a clear
-warning rather than silently repairing or discarding it.
+Build the candidate set as described under **Build the Candidate Set** in the
+shared contract. Prefer types that tend to be self-contained — concrete tasks
+and small, clearly reproducible bugs — but let the autonomy assessment in the
+next step decide, not the type label alone.
 
 ## 3. Assess Autonomy-Safety
 
@@ -90,13 +81,13 @@ weight:
    other work.
 
 Explicit priority is only a mild tiebreak here and never a filter: do not skip a
-safe, simple, low-priority item in favour of a riskier higher-priority one. Use
-judgement rather than a numeric score; when candidates are close, name the
-trade-off that separates them.
+safe, simple, low-priority item in favour of a riskier higher-priority one.
+Follow the shared ranking and reporting conventions.
 
 ## 5. Report the Decision
 
-Produce exactly these sections.
+Produce exactly these sections, following the shared ranking and reporting
+conventions.
 
 ### Candidates
 
@@ -108,11 +99,7 @@ Show the best AFK-suitable candidates first in a Markdown table:
 **Scope** is your one-word read of size (`tiny`, `small`, `medium`). **Verify**
 states how an agent would prove the work correct (e.g. `existing tests`,
 `new test`, `repro test`). Use the tracker-visible priority, writing `normal`
-when absent. Keep summaries to one or two sentences grounded in the full
-description, noting the done condition.
-
-Cap the table at about ten rows. In one short paragraph, summarise the count and
-shape of qualified work omitted for space.
+when absent. In each summary, note the done condition.
 
 ### Excluded as not AFK-safe
 
@@ -126,8 +113,7 @@ condition", "touches auth"). This makes the filter's judgement auditable. Write
 Name exactly one item to pick up. In a short paragraph, justify it against the
 autonomy bar — why its done condition is unambiguous, how an agent would verify
 it, and why its blast radius is small — then the ranking evidence that put it
-first. Mention one runner-up only when the choice is genuinely close, including
-what would change the decision.
+first.
 
 If nothing clears the bar, say so plainly and recommend against unattended work
-rather than lowering the bar. End by offering to pick up the recommended work.
+rather than lowering the bar.

@@ -26,15 +26,9 @@ fresh is preferable.
 
 ## 3. Gather Startable Candidates
 
-Find every unblocked item in the tracker's startable state whose type represents
-work rather than a container. Read each candidate's full description, not just
-its title. Load the relevant parents, dependencies, dependants, and referenced
-sibling items needed to understand scope and ordering.
-
-Exclude closed or otherwise terminal work, blocked work, and containers from the
-candidate set. Use containers and completed dependencies as context for ranking.
-If metadata appears stale or contradictory, keep the item visible with a clear
-warning rather than silently repairing or discarding it.
+Build the candidate set as described under **Build the Candidate Set** in the
+shared contract. No further filtering applies here — every startable, unblocked,
+non-container item is in scope for ranking.
 
 ## 4. Gather Momentum Context
 
@@ -56,12 +50,12 @@ Apply these criteria in descending weight:
 5. **Momentum:** all else being close, continue the active workstream instead of
    paying for a context switch.
 
-Use judgement rather than inventing a numeric score. When candidates are close,
-say what trade-off separates them.
+Follow the shared ranking and reporting conventions.
 
 ## 6. Report the Decision
 
-Produce exactly these sections.
+Produce exactly these sections, following the shared ranking and reporting
+conventions.
 
 ### In progress
 
@@ -78,17 +72,11 @@ Show the best candidates first in a Markdown table:
 Use the tracker-visible priority, writing `normal` when it is absent unless the
 tracker contract defines another default. Show direct identifiers in
 **Unblocks**, or `—`; mention additional transitive impact in the summary. Use
-the closest relevant container in **Parent**, or `—`.
-
-Keep summaries to one or two sentences grounded in the full item description.
-Cap the table at about ten rows, but always show every item at the tracker's
-highest urgency levels. Summarise the count and shape of omitted lower-ranked
-work in one short paragraph.
+the closest relevant container in **Parent**, or `—`. Always show every item at
+the tracker's highest urgency levels, even beyond the row cap.
 
 ### Recommendation
 
 Name exactly one item to pick up, or recommend finishing one in-progress item.
 Explain the decisive priority, dependency, sequence, and momentum evidence in a
-short paragraph. Mention one runner-up only when the choice is genuinely close,
-including what would change the decision. End by offering to pick up the
-recommended work.
+short paragraph.
