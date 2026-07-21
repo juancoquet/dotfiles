@@ -1,6 +1,6 @@
 ---
 name: software-design
-description: Apply Juan's language-agnostic design principles, including hexagonal architecture, explicit dependencies, controlled state, boundaries, and failures. Use whenever writing or reviewing non-frontend code, and for frontend work with meaningful application or service boundaries.
+description: Apply my language-agnostic design principles, including hexagonal architecture, explicit dependencies, controlled state, boundaries, and failures. Use whenever writing or reviewing non-frontend code, and for frontend work with meaningful application or service boundaries.
 ---
 
 # Software Design

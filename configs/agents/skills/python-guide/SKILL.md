@@ -1,6 +1,6 @@
 ---
 name: python-guide
-description: Apply Juan's opinionated Python rules for Pydantic data modelling, strict typing, code style, concurrency, pytest, tooling, and suppressions. Use whenever writing or reviewing Python code.
+description: Apply my opinionated Python rules for Pydantic data modelling, strict typing, code style, concurrency, pytest, tooling, and suppressions. Use whenever writing or reviewing Python code.
 ---
 
 # Python Guide

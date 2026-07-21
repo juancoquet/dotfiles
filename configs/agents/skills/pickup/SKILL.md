@@ -10,7 +10,7 @@ Given an issue ID, gain full context on the work and explain it back. The
 deliverable is a briefing that puts writer and reader on the same footing, so
 the design conversation that follows starts from shared understanding rather
 than from the reader's first skim. This skill produces no design and no code:
-design happens together with the user afterwards, and implementation after
+design happens together with me afterwards, and implementation after
 that.
 
 If no issue ID was given, ask for one.
@@ -104,4 +104,4 @@ a design, propose a full approach, or start implementing.
   moves to in-progress when implementation actually begins, not during
   context-gathering.
 - If context-gathering reveals the issue should be split, re-scoped, or
-  scrapped, say so in the briefing and let the user decide.
+  scrapped, say so in the briefing and let me decide.

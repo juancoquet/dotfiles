@@ -1,6 +1,6 @@
 ---
 name: next
-description: Decide what work should be done next from a repository's configured issue tracker. Use when the user asks what to work on next, requests backlog triage or prioritisation, or wants one concrete recommendation from the currently available work.
+description: Decide what work should be done next from a repository's configured issue tracker. Use when I ask what to work on next, request backlog triage or prioritisation, or want one concrete recommendation from the currently available work.
 ---
 
 # Choose the Next Piece of Work
