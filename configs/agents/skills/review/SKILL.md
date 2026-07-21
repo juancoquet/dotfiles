@@ -1,6 +1,7 @@
 ---
 name: review
 description: Review the current branch or working tree against its base branch. Use when asked to review changes, identify regressions, or assess whether work is ready to merge.
+argument-hint: "[base-branch]"
 ---
 
 # Review Code Changes
