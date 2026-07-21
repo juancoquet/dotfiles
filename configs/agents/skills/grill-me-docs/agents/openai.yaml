@@ -1,0 +1,5 @@
+interface:
+  display_name: "Grill Me (With Docs)"
+  short_description: "A grilling that also writes ADRs and a glossary as it goes"
+policy:
+  allow_implicit_invocation: false
