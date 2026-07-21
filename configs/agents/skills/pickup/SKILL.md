@@ -1,6 +1,7 @@
 ---
 name: pickup
 description: Pick up an issue as the next piece of work. Reads the issue and gains full context — related issues, README, relevant code, docs, links — then briefs back on the issue, its context, and the why. Stops before design; does NOT implement. Invoke as `/pickup <issue-id>`.
+argument-hint: "[issue-id]"
 ---
 
 # Picking Up an Issue

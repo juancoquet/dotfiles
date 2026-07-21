@@ -1,0 +1,3 @@
+interface:
+  display_name: "Next"
+  short_description: "Recommend the next issue to work on"
