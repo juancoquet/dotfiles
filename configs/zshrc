@@ -37,8 +37,8 @@ alias cs='csharp'
 alias claer='clear'
 alias c='clear'
 alias mkdir='mkdir -vp'
-alias ls='pls --grid=true'
-export CD_LS_COMMAND=ls
+alias lf='pls --grid=true'
+export CD_LS_COMMAND=lf
 alias py='python3'
 alias tm='tmux'
 alias venv='source .venv/bin/activate'
