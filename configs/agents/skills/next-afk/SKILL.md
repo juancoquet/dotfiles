@@ -11,10 +11,10 @@ judgement, and a small, reversible blast radius. I am away, so the decisive
 question is not "what is most important" but "what can be safely completed
 unattended and would otherwise languish."
 
-Deliberately favour small, low-priority, well-specified work. A simple task or a
-clearly reproducible bug that keeps getting skipped because it is not urgent is
-exactly the point: if it is safe to do and would otherwise not get done, picking
-it up is a win.
+Deliberately favour small, well-specified work. Low-priority work should not
+be a deterrent: a simple task or a clearly reproducible bug that keeps
+getting skipped because it is not urgent is a valid candidate: if it is safe
+to do and would otherwise not get done, picking it up is a win.
 
 ## 1. Establish the Tracker Contract
 
@@ -63,7 +63,9 @@ A candidate is **disqualified** if any of these apply:
 
 When a candidate is close to the bar, treat the ambiguity as disqualifying: the
 cost of a wrong autonomous change outweighs clearing one more backlog item. Do
-not lower the bar just to have something to recommend.
+not lower the bar just to have something to recommend. You should still mention
+these items explicitly following the ordered recommended list, but before your
+final recommended item.
 
 ## 4. Rank the Qualified Candidates
 
