@@ -10,61 +10,20 @@ Given an issue ID, gain full context on the work and explain it back. The
 deliverable is a briefing that puts writer and reader on the same footing, so
 the design conversation that follows starts from shared understanding rather
 than from the reader's first skim. This skill produces no design and no code:
-design happens together with me afterwards, and implementation after
-that.
+design happens together with me afterwards, and implementation after that.
 
 If no issue ID was given, ask for one.
 
-## 1. Read the Issue
+## 1. Gain Full Context
 
-Fetch the issue from the tracker and read the full body — not just the
-title. Note its acceptance criteria, its status, and its relationships:
-parent, children, blockers, and anything it blocks.
+Read and follow the shared context contract in
+[CONTEXT-CONTRACT.md](../pickup-common/CONTEXT-CONTRACT.md): identify the
+canonical tracker, fetch and read the issue in full, follow the context graph
+(related issues, links, docs, code, history), and verify the issue's claims
+against the current state of the repo. Carry every gap and discrepancy it
+surfaces into the briefing below.
 
-A well-written issue answers three questions: *why* the work matters, *what*
-must be observably true when it's done, and how *done*-ness will be judged.
-Read with those questions in mind — where the issue leaves one unanswered,
-that's a gap to surface in the briefing, not a blank to silently fill with
-guesses.
-
-## 2. Follow the Context Graph
-
-Chase everything the issue points at, and the things it should have pointed
-at:
-
-- **Related issues.** Read the bodies of the parent, blockers, and any
-  referenced siblings — the parent carries the larger intent, blockers carry
-  ordering rationale, and completed neighbours show what groundwork already
-  landed.
-- **Links.** Follow links in the issue body (discussions, docs, external
-  references) and extract the load-bearing conclusion of each.
-- **Project README and docs.** Read whatever explains the subsystem the
-  issue touches — architecture notes, design docs, ADRs.
-- **Relevant code.** Find the areas the work will touch and read enough to
-  understand current behaviour: the modules, their tests, and how data flows
-  through them. The briefing must describe what the code does *today*, not
-  what the issue assumes it does.
-- **History.** Skim recent commits and merged work in the affected area —
-  the issue may predate changes that alter its premises.
-- **Anything else** the issue's content makes relevant: config, schemas,
-  logs, upstream dependency docs.
-
-Use subagents for broad searches when the surface area is large; read the
-load-bearing files yourself.
-
-## 3. Verify Against Reality
-
-Issues go stale. Before briefing, check the issue's claims against the
-current state of the repo:
-
-- Does the described problem still exist? Reproduce it cheaply if a bug.
-- Have the assumptions changed — code refactored, dependency replaced,
-  neighbouring issue completed in a way that shrinks or reshapes this one?
-- Is the stated motivation still the actual motivation?
-
-Discrepancies are findings, not obstacles: report them in the briefing.
-
-## 4. Brief Back
+## 2. Brief Back
 
 Deliver the briefing in this shape. Every section other than the opening is
 optional: if there is nothing real to put under a heading, omit the section
