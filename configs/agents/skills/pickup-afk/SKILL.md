@@ -1,7 +1,8 @@
 ---
 name: pickup-afk
-description: Pick up an issue and work it end to end while I am away from the keyboard. Gains full context — related issues, README, relevant code, docs, links — then, once the work is understood, claims the issue and implements it autonomously without waiting for me. Stops and reports instead of guessing when the issue genuinely needs my input. Invoke as `/pickup-afk <issue-id>`.
+description: Pick up an issue and work it end to end while I am away from the keyboard. Manual-invoke only. Gains full context — related issues, README, relevant code, docs, links — then, once the work is understood, claims the issue and implements it autonomously without waiting for me. Stops and reports instead of guessing when the issue genuinely needs my input. Invoke as `/pickup-afk <issue-id>`.
 argument-hint: "[issue-id]"
+disable-model-invocation: true
 ---
 
 # Picking Up an Issue to Work Unattended
