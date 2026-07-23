@@ -64,9 +64,10 @@ Once the issue clears the bar, work it end to end following the repository's
 tracker workflow and my global engineering rules:
 
 - **Claim it.** Per the tracker's documented workflow, self-assign the issue,
-  move it to its in-progress status, and work on a linked branch named for the
-  issue. (If a `/pickup` briefing already moved it into progress, continue on
-  that branch.)
+  move it to its in-progress status, and work on a linked branch that prefixes
+  the repository's regular branch convention with `afk/` — for example
+  `afk/<issue-number>-<short-kebab-description>`. (If a `/pickup` briefing
+  already moved it into progress, continue on that branch.)
 - **Implement.** Make the change guided by the acceptance criteria and the
   context you gathered. For bugs, follow red-green-refactor: write a failing
   test that reproduces the bug, confirm it fails for the expected reason, make
@@ -78,8 +79,9 @@ tracker workflow and my global engineering rules:
   consider the work done until verification passes.
 - **Follow through.** Reference the issue number in commits, keep the
   acceptance-criteria checkboxes current, and open a pull request that closes
-  the issue, following the repo's PR conventions. Record any decision or
-  scope change a future reader would need.
+  the issue, following the repo's PR conventions but prefixing the title with
+  `AFK: ` — for example `AFK: <pr-title-per-repo-convention>`. Record any
+  decision or scope change a future reader would need.
 
 If you hit a genuine blocker or a decision only I can make partway through,
 stop, leave the work in a clean state, and report what you did, what remains,
