@@ -1,0 +1,5 @@
+interface:
+  display_name: "Pickup (AFK)"
+  short_description: "Work an issue end to end while away"
+policy:
+  allow_implicit_invocation: false
