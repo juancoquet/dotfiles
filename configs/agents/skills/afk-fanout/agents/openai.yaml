@@ -1,0 +1,5 @@
+interface:
+  display_name: "AFK Fanout"
+  short_description: "Work several issues end to end while away"
+policy:
+  allow_implicit_invocation: false
