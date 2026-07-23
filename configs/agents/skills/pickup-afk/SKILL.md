@@ -63,6 +63,10 @@ findings and the decision it needs, and do not change the code.
 Once the issue clears the bar, work it end to end following the repository's
 tracker workflow and my global engineering rules:
 
+- **Work in a fresh worktree.** Pull the base branch to latest, then create a
+  fresh git worktree off it and do all the work there, leaving my checkout
+  untouched. If the pull fails or the worktree cannot be created, stop and
+  report rather than working in place.
 - **Claim it.** Per the tracker's documented workflow, self-assign the issue,
   move it to its in-progress status, and work on a linked branch named for the
   issue. (If a `/pickup` briefing already moved it into progress, continue on
