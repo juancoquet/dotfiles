@@ -26,12 +26,11 @@ clearly to one, open the PR without a link rather than guessing at one.
 ## 3. Resolve the base
 
 Use a base branch I supply; otherwise the default branch from
-`refs/remotes/origin/HEAD`. If the current branch is the base branch, create
-a new branch off it before doing anything else, named per the tracker's
-documented branch convention — fold in the issue from step 2 if one was
-found, or a short kebab-description of the change otherwise. Stop if the
-branch has no commits the base lacks. Read the diff so what follows describes
-the branch, not the issue's assumptions.
+`refs/remotes/origin/HEAD`. If already on the base branch, branch off it
+first, named per the tracker's convention — fold in step 2's issue if found,
+else a short kebab-description. Stop if the branch has no commits the base
+lacks. Read the diff so what follows describes the branch, not the issue's
+assumptions.
 
 ## 4. Reconcile acceptance criteria — on the issue
 
