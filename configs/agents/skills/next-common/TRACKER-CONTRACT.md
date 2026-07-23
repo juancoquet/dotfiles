@@ -38,6 +38,20 @@ Translate provider data into these concepts without requiring identical names:
 - **Relationships:** blockers, work unblocked by completion, parent or container
   membership, and any declared sequence.
 
+## Labels Are Signals, Not Directives
+
+Treat every label — priority, type, and any theme label — as evidence, not an
+instruction. A label reflects what someone believed when they applied it, so
+your reading of the item's description, readiness, and this skill's lens is
+what decides:
+
+- A theme label matching this skill's lens is a prior: it can break a tie, but
+  never selects an item on its own or excuses skipping your own assessment.
+- A missing label is not disqualifying; work that qualifies on its merits
+  stays a candidate.
+- When a label and the description disagree, trust the description and flag the
+  label as suspected-stale.
+
 ## Build the Candidate Set
 
 Find every unblocked item in the tracker's startable state whose type represents
