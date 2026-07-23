@@ -17,22 +17,24 @@ First, find how this repo wants PRs opened: a pull-request template
 below — title format, body sections, labels, the linking keyword, review
 process — follow them over the defaults in this skill.
 
-## 2. Resolve the base
-
-Use a base branch I supply; otherwise the default branch from
-`refs/remotes/origin/HEAD`. Stop if the current branch is the default branch,
-or has no commits the base lacks. Read the diff so what follows describes the
-branch, not the issue's assumptions.
-
-## 3. Find the issue
+## 2. Find the issue
 
 Best-effort: look for the issue this branch implements in the branch name,
 commit messages, and anything I've said this session. If nothing points
 clearly to one, open the PR without a link rather than guessing at one.
 
+## 3. Resolve the base
+
+Use a base branch I supply; otherwise the default branch from
+`refs/remotes/origin/HEAD`. If already on the base branch, branch off it
+first, named per the tracker's convention — fold in step 2's issue if found,
+else a short kebab-description. Stop if the branch has no commits the base
+lacks. Read the diff so what follows describes the branch, not the issue's
+assumptions.
+
 ## 4. Reconcile acceptance criteria — on the issue
 
-If step 3 identified an issue, then before composing the PR check each
+If step 2 identified an issue, then before composing the PR check each
 criterion against the diff and mark the satisfied ones done on the issue
 itself, in whatever tracker holds it, fixing any stale wording. Never mark a criterion the branch does not satisfy: an
 unmet one means the PR holds, opens as a draft, or descopes that criterion to
@@ -41,7 +43,7 @@ a follow-up — my call.
 ## 5. Apply pertinent labels
 
 Run `gh label list --limit 100` (or the tracker's equivalent) to see what's
-configured. If step 3 found an issue, mirror its type and theme labels onto
+configured. If step 2 found an issue, mirror its type and theme labels onto
 the PR — a PR is the same kind of work as the issue it closes. Otherwise,
 infer theme labels from the diff: which area, component, or cross-cutting
 concern the changes touch. Skip status and priority labels — those track
