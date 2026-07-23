@@ -18,9 +18,9 @@ repository instructions. Follow that tracker's documented workflow, field
 semantics, and relationship semantics; use its integration and built-in help
 when query syntax or capabilities are unclear.
 
-Fetch the issue and read the full body — not just the title. Note its
-acceptance criteria, its status, and its relationships: parent, children,
-blockers, and anything it blocks.
+Fetch the issue and read the full body and comment thread — not just the
+title. Note its acceptance criteria, its status, and its relationships:
+parent, children, blockers, and anything it blocks.
 
 A well-written issue answers three questions: *why* the work matters, *what*
 must be observably true when it's done, and how *done*-ness will be judged. Read
