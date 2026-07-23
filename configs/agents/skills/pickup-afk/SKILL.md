@@ -1,8 +1,7 @@
 ---
 name: pickup-afk
-description: Pick up an issue and work it end to end while I am away from the keyboard. Manual-invoke only. Gains full context — related issues, README, relevant code, docs, links — then, once the work is understood, claims the issue and implements it autonomously without waiting for me. Stops and reports instead of guessing when the issue genuinely needs my input. Invoke as `/pickup-afk <issue-id>`.
+description: Pick up an issue and work it end to end while I am away from the keyboard. Callable directly by another skill or agent, or by me via `/pickup-afk <issue-id>`. Gains full context — related issues, README, relevant code, docs, links — then, once the work is understood, claims the issue, implements it autonomously, and watches CI after opening the PR, fixing failures automatically. Stops and reports instead of guessing when the issue genuinely needs my input.
 argument-hint: "[issue-id]"
-disable-model-invocation: true
 ---
 
 # Picking Up an Issue to Work Unattended
@@ -15,8 +14,8 @@ a hard rule — where the work genuinely needs my judgement, stop and leave a
 clear report instead of guessing.
 
 If no issue ID was given, say so and stop. Do not choose an issue yourself —
-selecting unattended work from the backlog is `next-afk`'s job; this skill works
-the one issue I hand it.
+selecting unattended work from the backlog is out of scope here; this skill
+works the one issue it's handed.
 
 ## 1. Gain Full Context
 
@@ -30,9 +29,7 @@ feed directly into the safety check below.
 ## 2. Confirm It's Safe to Work Unattended
 
 Before touching anything, judge whether this specific issue can be completed
-without me in the loop. This is the same bar `next-afk` applies when it selects
-work; here you apply it to the one issue you were handed, using the context you
-just gathered.
+without me in the loop, using the context you just gathered.
 
 Proceed only when all of these hold:
 
@@ -82,6 +79,15 @@ tracker workflow and my global engineering rules:
   skill, with one override: prefix its title with `AFK: ` — for example
   `AFK: <pr-title>`. Record any decision or scope change a
   future reader would need.
+- **Watch CI.** After the PR is open, watch its checks to completion (for
+  example `gh pr checks --watch`). On a failure, diagnose it and make the
+  minimal fix using the same verify-before-done discipline as the
+  implementation step, then push and resume watching. Give the same failure
+  up to three fix attempts before giving up on it — a different failure
+  surfacing after a fix is progress, not a repeat, and earns its own three
+  attempts. Stop and report rather than iterating blindly once a single
+  failure survives three attempts, or if any failure exposes an ambiguity or
+  a decision only I can make.
 
 If you hit a genuine blocker or a decision only I can make partway through,
 stop, leave the work in a clean state, and report what you did, what remains,
