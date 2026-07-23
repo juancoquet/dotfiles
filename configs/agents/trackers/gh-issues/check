@@ -42,6 +42,8 @@ for value in \
 done
 
 test "$(grep -c -- '--limit 20' "$root/gh-issues-context.md")" = 4
+grep -q 'gh label list' "$root/gh-issues-context.md"
+grep -q 'Theme labels' "$root/gh-issues-context.md"
 grep -q 'Do not duplicate this with a `status:blocked`' \
 	"$root/gh-issues-context.md"
 grep -q '\*\*Milestones\*\* group issues' \

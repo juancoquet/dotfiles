@@ -9,6 +9,31 @@ issue operations.
   remains the source of truth for scope, progress, and follow-up work.
 - Use `gh <command> --help` when you need flags or behavior not shown here.
 
+## Discover the Configured Labels
+
+The label vocabulary is project-specific. This guide fixes the *meaning* of the
+structural axes below, but the concrete set of labels — including any label
+outside those axes — lives on the tracker, not in this guide. Enumerate it once
+early in the session:
+
+```bash
+gh label list --limit 100
+```
+
+Sort what you find into two groups:
+
+- **Structural axes** — the `type:`, `status:`, and `priority:` families
+  documented below. Their names and meanings are part of the workflow contract;
+  treat them as authoritative. If the tracker is missing one or carries an
+  extra `type:`/`status:`/`priority:` label this guide does not describe, report
+  the mismatch rather than inventing a meaning for it.
+- **Theme labels** — every other label the project has configured (for example
+  an area, component, or cross-cutting concern). A theme is orthogonal to the
+  structural axes: it cuts across the `type:` partition and coexists with any
+  one type, status, and priority. Learn a project's themes from `gh label list`,
+  apply the ones that fit an issue, and never treat a theme label as
+  unrecognised merely because it is not named in this guide.
+
 ## Track Work With Issues
 
 Before starting work:
@@ -66,6 +91,10 @@ View the full issue, including its relationships and discussion, before
 starting it.
 
 ## Types, Statuses, and Priorities
+
+These are the structural axes the workflow relies on. Their meanings are fixed
+here; the tracker's concrete labels — and any theme labels alongside them — come
+from `gh label list` (see *Discover the Configured Labels*).
 
 Every issue has exactly one of these type labels:
 
