@@ -78,10 +78,10 @@ tracker workflow and my global engineering rules:
   work. Update generated artifacts when source changes affect them. Do not
   consider the work done until verification passes.
 - **Follow through.** Reference the issue number in commits, keep the
-  acceptance-criteria checkboxes current, and open a pull request that closes
-  the issue, following the repo's PR conventions but prefixing the title with
-  `AFK: ` — for example `AFK: <pr-title-per-repo-convention>`. Record any
-  decision or scope change a future reader would need.
+  acceptance-criteria checkboxes current, and open the PR via the `pr-open`
+  skill, with one override: prefix its title with `AFK: ` — for example
+  `AFK: <pr-title>`. Record any decision or scope change a
+  future reader would need.
 
 If you hit a genuine blocker or a decision only I can make partway through,
 stop, leave the work in a clean state, and report what you did, what remains,

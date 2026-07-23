@@ -38,13 +38,25 @@ itself, in whatever tracker holds it, fixing any stale wording. Never mark a cri
 unmet one means the PR holds, opens as a draft, or descopes that criterion to
 a follow-up — my call.
 
-## 5. Compose and create
+## 5. Apply pertinent labels
+
+Run `gh label list --limit 100` (or the tracker's equivalent) to see what's
+configured. If step 3 found an issue, mirror its type and theme labels onto
+the PR — a PR is the same kind of work as the issue it closes. Otherwise,
+infer theme labels from the diff: which area, component, or cross-cutting
+concern the changes touch. Skip status and priority labels — those track
+issue state, not PR state. Apply only labels that clearly fit; leave the PR
+unlabelled over forcing one.
+
+## 6. Compose and create
 
 - **Title:** concise and imperative. **Body:** what changed, why, and how it
   was verified.
 - Link the issue using the tracker's convention — a closing reference (e.g.
   `Closes #123`, `Fixes ENG-123`) for work that completes it, a plain
   reference otherwise.
+- Pass the labels from step 5 at creation (e.g. `gh pr create --label ...`)
+  rather than adding them in a follow-up edit.
 - Never add `Co-Authored-By` or other AI-attribution trailers to pull request
   descriptions. This includes "🤖 Generated with Claude Code", or any other
   line that harnesses append by default — omit it.
