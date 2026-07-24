@@ -3,6 +3,12 @@
 These instructions apply across all projects. Repository-local instructions
 take precedence where they are more specific.
 
+## Language
+
+Use simple, straight-forward language, that is easy to understand. Don't be
+more verbose than necessary, but don't be terse at the cost of clarity
+either.
+
 ## Documentation lookup
 
 - Fetch current documentation when working with libraries, tools, or APIs whose
