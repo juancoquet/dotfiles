@@ -6,6 +6,7 @@ import { basename, join, resolve } from "node:path";
 import { WorkspaceRegistry } from "./database.ts";
 import { bootstrapRoot, type PreparedRoot } from "./bootstrap.ts";
 import { createNewWorkspace } from "./launcher.ts";
+import { RuntimeRegistry } from "./runtime.ts";
 import type { ManagedWorktree, Repository } from "./types.ts";
 
 export interface GitWorktree {
@@ -35,6 +36,97 @@ export interface GitClient {
 export type ManagedWorktreeResult =
   | { kind: "created"; worktree: ManagedWorktree }
   | { kind: "cancelled" };
+
+export interface ManagedWorktreeSafetyReport {
+  worktree: ManagedWorktree;
+  sessions: readonly string[];
+  dirty: boolean;
+  unpushed: boolean;
+  mergeStatus: "merged" | "not-merged" | "unknown";
+  warm: boolean;
+}
+
+export interface ManagedWorktreeCleanupDependencies {
+  git: GitClient;
+  runtime(registry: WorkspaceRegistry): RuntimeRegistry;
+  confirm(report: ManagedWorktreeSafetyReport): boolean;
+}
+
+export type ManagedWorktreeCleanupResult =
+  | { kind: "removed"; report: ManagedWorktreeSafetyReport }
+  | { kind: "refused"; report: ManagedWorktreeSafetyReport; reason: "warm" | "dirty" | "unpushed" | "not-merged" | "merge-unknown" }
+  | { kind: "not-managed" }
+  | { kind: "cancelled" }
+  | { kind: "failed"; error: Error };
+
+/** Removes a centrally managed worktree only after every repository safety check passes. */
+export function removeManagedWorktree(
+  path: string,
+  registry: WorkspaceRegistry,
+  dependencies: ManagedWorktreeCleanupDependencies = defaultCleanupDependencies(),
+): ManagedWorktreeCleanupResult {
+  const worktree = registry.getManagedWorktreeByPath(path);
+  if (!worktree) return { kind: "not-managed" };
+  try {
+    const report = inspectManagedWorktree(worktree, registry, dependencies.git, dependencies.runtime(registry));
+    const reason = unsafeReason(report);
+    if (reason) return { kind: "refused", report, reason };
+    if (!dependencies.confirm(report)) return { kind: "cancelled" };
+    // `git -C <worktree> worktree remove <worktree>` can delete its own cwd.
+    // Resolve the shared Git directory first so pruning still has a valid cwd.
+    const commonDirectory = dependencies.git.output(["rev-parse", "--path-format=absolute", "--git-common-dir"], worktree.path).trim();
+    dependencies.git.execute(["worktree", "remove", worktree.path], commonDirectory);
+    dependencies.git.execute(["worktree", "prune"], commonDirectory);
+    registry.removeManagedWorktree(worktree.id);
+    return { kind: "removed", report };
+  } catch (error) {
+    return { kind: "failed", error: error instanceof Error ? error : new Error(String(error)) };
+  }
+}
+
+/** Inspects safety conditions without mutating Git or manager state. */
+export function inspectManagedWorktree(worktree: ManagedWorktree, registry: WorkspaceRegistry, git: GitClient, runtime: RuntimeRegistry): ManagedWorktreeSafetyReport {
+  const sessions = registry.listSessions().filter((session) => session.rootId === worktree.rootId).map((session) => session.id);
+  const warm = sessions.some((sessionId) => runtime.ownership(sessionId).state === "managed-warm");
+  const dirty = git.output(["status", "--porcelain"], worktree.path).trim().length > 0;
+  const unpushed = git.output(["log", "--format=%H", "--not", "--remotes", `--branches=${worktree.branch}`], worktree.path).trim().length > 0;
+  let mergeStatus: ManagedWorktreeSafetyReport["mergeStatus"] = "unknown";
+  try {
+    const remote = selectRemote(worktree.path, git);
+    const base = remoteDefaultBranch(worktree.path, remote, git);
+    git.output(["merge-base", "--is-ancestor", "HEAD", base], worktree.path);
+    mergeStatus = "merged";
+  } catch {
+    // A nonzero merge-base result means the branch is not merged. Any failure
+    // is conservative: deletion requires an explicitly verified merge.
+    mergeStatus = "not-merged";
+  }
+  return { worktree, sessions, dirty, unpushed, mergeStatus, warm };
+}
+
+function unsafeReason(report: ManagedWorktreeSafetyReport): Extract<ManagedWorktreeCleanupResult, { kind: "refused" }> ["reason"] | undefined {
+  if (report.warm) return "warm";
+  if (report.dirty) return "dirty";
+  if (report.unpushed) return "unpushed";
+  if (report.mergeStatus === "not-merged") return "not-merged";
+  if (report.mergeStatus === "unknown") return "merge-unknown";
+  return undefined;
+}
+
+function defaultCleanupDependencies(): ManagedWorktreeCleanupDependencies {
+  return { git: new LocalGit(), runtime: (registry) => new RuntimeRegistry(registry), confirm: confirmManagedWorktreeRemoval };
+}
+
+function confirmManagedWorktreeRemoval(report: ManagedWorktreeSafetyReport): boolean {
+  const sessions = report.sessions.length ? report.sessions.join(", ") : "none";
+  const header = `Sessions: ${sessions} | clean | no unpushed commits | merged`;
+  try {
+    execFileSync("fzf", ["--prompt=Confirm removal> ", `--header=${header}`, "--select-1"], {
+      input: `${report.worktree.path}\n`, stdio: ["pipe", "ignore", "inherit"], timeout: 60_000,
+    });
+    return true;
+  } catch { return false; }
+}
 
 /** Lists worktrees belonging to the repository containing `root`. */
 export function listGitWorktrees(root: string, git: GitClient = new LocalGit()): GitWorktree[] {

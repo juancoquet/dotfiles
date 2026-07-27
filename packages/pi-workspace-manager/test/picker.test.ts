@@ -26,10 +26,10 @@ test("renders repository groups and sessions in persisted order", () => {
   seed(registry);
   assert.equal(renderWorkspacePicker(registry), [
     "── two ──",
-    "  ○     /two  Third\tthird",
+    "  ○     [missing] /two  Third\tthird",
     "── one ──",
-    "  ○     /worktrees/one  Second  2026-01-03\tsecond",
-    "  ○     /one  first message  2026-01-02\tfirst",
+    "  ○     [missing] /worktrees/one  Second  2026-01-03\tsecond",
+    "  ○     [missing] /one  first message  2026-01-02\tfirst",
     "",
   ].join("\n"));
   registry.close();
@@ -42,9 +42,9 @@ test("renders independent runtime and unread columns", () => {
   assert.ok(registry.claimRuntimeRegistration({ sessionId: "third", instanceId: "third-runtime", pid: process.pid, cwd: "/two", workspaceId: null, tmuxLocation: null, agentState: "idle", heartbeatAt: new Date().toISOString() }, "2000-01-01T00:00:00.000Z"));
   registry.setSessionUnread("first", true);
   const listing = renderWorkspacePicker(registry, 1);
-  assert.match(listing, /○  󰂚  \/one/);
-  assert.match(listing, /⠙     \/worktrees\/one/);
-  assert.match(listing, /◌     \/two/);
+  assert.match(listing, /○  󰂚  \[missing\] \/one/);
+  assert.match(listing, /⠙     \[missing\] \/worktrees\/one/);
+  assert.match(listing, /◌     \[missing\] \/two/);
   registry.close();
 });
 
@@ -188,6 +188,7 @@ test("shows loading while fzf reloads empty and catalog-error states without sor
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-a:execute(~/.local/bin/piw-picker --archive {2})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-a:execute(~/.local/bin/piw-picker --archive-tree {2})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-x:execute(~/.local/bin/piw-picker --trash {2})+reload(")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-x:execute(~/.local/bin/piw-picker --cleanup-worktree {2})+reload(")));
   assert.ok(calls[0]!.arguments_.includes("--track-current"));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-n:execute(~/.local/bin/piw-picker --create {2})+abort")));
   assert.deepEqual(directoryPickerArguments("/repo/src"), [

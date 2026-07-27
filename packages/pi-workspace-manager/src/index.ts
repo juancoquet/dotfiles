@@ -11,8 +11,8 @@ export { extractExcerpts, previewSessionFromPicker, renderSessionPreview } from 
 export type { GitPreview, SessionPreviewDependencies } from "./preview.ts";
 export { renameSession } from "./session-names.ts";
 export type { PiSessionNameWriter, SessionNameStore } from "./session-names.ts";
-export { createManagedWorktree, listGitWorktrees, LocalGit } from "./worktrees.ts";
-export type { GitClient, GitWorktree, ManagedWorktreeDependencies, ManagedWorktreePrompter, ManagedWorktreeResult } from "./worktrees.ts";
+export { createManagedWorktree, inspectManagedWorktree, listGitWorktrees, LocalGit, removeManagedWorktree } from "./worktrees.ts";
+export type { GitClient, GitWorktree, ManagedWorktreeCleanupDependencies, ManagedWorktreeCleanupResult, ManagedWorktreeDependencies, ManagedWorktreePrompter, ManagedWorktreeResult, ManagedWorktreeSafetyReport } from "./worktrees.ts";
 export { NvimPaneManager } from "./nvim.ts";
 export { appendReviewComment, renderReviewComment, serveReviewComments } from "./review-comments.ts";
 export type { ReviewComment, ReviewCommentSocket } from "./review-comments.ts";

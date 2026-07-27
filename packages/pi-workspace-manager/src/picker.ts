@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { bootstrapRoot } from "./bootstrap.ts";
 import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
@@ -7,7 +8,7 @@ import { RuntimeRegistry } from "./runtime.ts";
 import { renderSessionPreview } from "./preview.ts";
 import { renameSession } from "./session-names.ts";
 import { archiveSession, archiveSessionTree, closeWorkspace, trashSession } from "./session-actions.ts";
-import { createManagedWorktree, listGitWorktrees } from "./worktrees.ts";
+import { createManagedWorktree, listGitWorktrees, removeManagedWorktree } from "./worktrees.ts";
 import type { PiSession, Repository, Root } from "./types.ts";
 
 const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Ctrl+/ preview  Alt+j/k move session  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
@@ -27,6 +28,7 @@ const HELP = [
   "Ctrl+A     Archive a session",
   "Ctrl+Alt+A Archive a session and descendants",
   "Ctrl+Alt+X Move a cold session to macOS Trash",
+  "Ctrl+X     Remove a clean, merged managed worktree",
   "Ctrl+R     Restore one archived session",
   "Esc        Return to the picker",
   "",
@@ -134,7 +136,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
     "--prompt=Workspace> ",
     `--preview=${command} --preview {2}`,
     `--preview-window=${previewWindow}`,
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-alt-a:execute(${command} --archive-tree {2})+${refresh},ctrl-alt-x:execute(${command} --trash {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
+    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-alt-a:execute(${command} --archive-tree {2})+${refresh},ctrl-alt-x:execute(${command} --trash {2})+${refresh},ctrl-x:execute(${command} --cleanup-worktree {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
     "--track-current",
     "--select-1",
   ];
@@ -251,7 +253,8 @@ function renderSession(session: PiSession, root: Root, runtime: RuntimeRegistry,
     : ownership.registration.agentState === "running" ? SPINNER_FRAMES[frame % SPINNER_FRAMES.length]
     : "●";
   const unread = session.unread ? UNREAD_BELL : " ";
-  return `  ${status}  ${unread}  ${clean(root.path)}  ${clean(name)}${activity}\t${session.id}`;
+  const rootLabel = existsSync(root.path) ? root.path : `[missing] ${root.path}`;
+  return `  ${status}  ${unread}  ${clean(rootLabel)}  ${clean(name)}${activity}\t${session.id}`;
 }
 
 /** Supplies fzf reloads while editing archived session names. */
@@ -276,6 +279,10 @@ export function renderLoading(): string {
 function renderCatalogError(error: unknown): string {
   const message = error instanceof Error ? error.message : "unknown failure";
   return `Unable to load Pi sessions: ${clean(message)}\nRun piw again after resolving the catalog error.\n`;
+}
+
+function cleanupReason(reason: "warm" | "dirty" | "unpushed" | "not-merged" | "merge-unknown"): string {
+  return ({ warm: "a warm workspace uses it", dirty: "it has uncommitted changes", unpushed: "it has unpushed commits", "not-merged": "its branch is not merged", "merge-unknown": "its merge status could not be verified" })[reason];
 }
 
 function clean(value: string): string {
@@ -376,6 +383,20 @@ if (import.meta.main) {
     if (result === "unsafe") process.stderr.write("Cannot trash a running or active Pi session. Close it first.\n");
     else if (result === "failed") process.stderr.write("Could not move this Pi session to macOS Trash; its history was retained.\n");
   }
+  else if (argument === "--cleanup-worktree" && sessionId && !frame && extra.length === 0) {
+    const registry = WorkspaceRegistry.open();
+    try {
+      await catalogSessions(registry);
+      const root = registry.getRoot(registry.getSession(sessionId)?.rootId ?? "");
+      if (!root) process.stderr.write("This session has no workspace root.\n");
+      else {
+        const result = removeManagedWorktree(root.path, registry);
+        if (result.kind === "not-managed") process.stderr.write("This root is not a managed worktree.\n");
+        else if (result.kind === "refused") process.stderr.write(`Cannot remove managed worktree: ${cleanupReason(result.reason)}. Sessions: ${result.report.sessions.join(", ") || "none"}.\n`);
+        else if (result.kind === "failed") process.stderr.write(`Could not remove managed worktree; Git and manager metadata were retained: ${result.error.message}\n`);
+      }
+    } finally { registry.close(); }
+  }
   else if (argument === "--restore" && !sessionId && !frame && extra.length === 0) await restoreArchivedSessionFromPicker();
   else if (argument === "--toggle-unread" && sessionId && !frame && extra.length === 0) {
     const registry = WorkspaceRegistry.open();
@@ -390,5 +411,5 @@ if (import.meta.main) {
     if (result === "session-active-elsewhere") process.stderr.write("This Pi session is active elsewhere and cannot be opened here.\n");
     else if (result === "session-not-found") process.stderr.write("This Pi session no longer exists.\n");
   } else if (!argument) await showWorkspacePicker();
-  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--archive-tree <session-id>|--trash <session-id>|--restore|--toggle-unread <session-id>|--preview <session-id>|--open <session-id>]");
+  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--archive-tree <session-id>|--trash <session-id>|--cleanup-worktree <session-id>|--restore|--toggle-unread <session-id>|--preview <session-id>|--open <session-id>]");
 }
