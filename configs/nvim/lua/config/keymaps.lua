@@ -9,4 +9,5 @@ vim.keymap.del("n", "<leader>l")
 vim.keymap.del("n", "<leader>L")
 vim.keymap.set("n", "<leader>L", "<cmd>Lazy<cr>", { desc = "Lazy" })
 
-require("config.review-comments")
+function helloworld()
+end
