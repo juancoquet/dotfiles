@@ -181,14 +181,12 @@ test("renders picker help from the same actions bound in fzf", () => {
   assert.match(bindings, /ctrl-alt-x:execute\([^)]*--trash \{2}\)/);
 });
 
-test("shows loading while fzf reloads empty and catalog-error states without sorting", async () => {
+test("configures an interactive unsorted picker and renders empty and catalog-error states", async () => {
   const calls: Array<{ input: string; arguments_: readonly string[] }> = [];
   const process: PickerProcess = { run: (input, arguments_) => { calls.push({ input, arguments_ }); return undefined; } };
   await showWorkspacePicker({ process, open: async () => assert.fail("no session was selected") });
   assert.match(calls[0]!.input, /Loading Pi sessions/);
   assert.ok(calls[0]!.arguments_.includes("--no-sort"));
-  assert.ok(calls[0]!.arguments_.includes("--disabled"));
-  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("start:reload(~/.local/bin/piw-picker --list $(( $(date +%s%N) / 100000000 )))+enable-search")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-r:execute(~/.local/bin/piw-picker --restore)+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-e:execute(~/.local/bin/piw-picker --rename {2})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("alt-j:execute(~/.local/bin/piw-picker --move-session {2} down {q})+reload(")));

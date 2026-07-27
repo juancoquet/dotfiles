@@ -145,14 +145,12 @@ export function renderWorkspacePicker(registry: WorkspaceRegistry, frame = 0): s
 export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumns = process.stdout.columns): string[] {
   const listing = `${command} --list $(( $(date +%s%N) / 100000000 ))`;
   const refresh = `reload(${listing})`;
-  const animate = "execute-silent(while kill -0 $PPID 2>/dev/null; do sleep 0.1; tmux send-keys -t \"$TMUX_PANE\" C-r 2>/dev/null || exit; done)";
   const bindings = PICKER_BINDINGS
     .filter((binding) => binding.action !== "accept")
     .map((binding) => `${fzfKey(binding.key)}:${binding.action.replaceAll("{command}", command).replaceAll("{refresh}", refresh)}`);
   const previewWindow = terminalColumns >= 110 ? "right:50%:wrap" : "right:50%:wrap:hidden";
   return [
     "--no-sort",
-    "--disabled",
     "--layout=reverse",
     "--delimiter=\\t",
     "--with-nth=1",
@@ -160,7 +158,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
     "--prompt=Workspace> ",
     `--preview=${command} --preview {2}`,
     `--preview-window=${previewWindow}`,
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),${bindings.join(",")}`,
+    `--bind=?:execute(${command} --help),${bindings.join(",")}`,
     "--select-1",
   ];
 }
