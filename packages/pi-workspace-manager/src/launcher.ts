@@ -199,7 +199,10 @@ class LocalTmux implements Tmux {
   }
 
   attach(session: string, insideTmux: boolean): void {
-    runTmux(insideTmux ? ["switch-client", "-t", session] : ["attach-session", "-t", session]);
+    const args = insideTmux ? ["switch-client", "-t", session] : ["attach-session", "-t", session];
+    // attach-session needs the caller's terminal; captured stdin makes tmux
+    // reject it with "open terminal failed: not a terminal".
+    execFileSync("tmux", args, { stdio: "inherit" });
   }
 }
 
