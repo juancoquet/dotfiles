@@ -32,7 +32,7 @@ export default function workspaceManagerExtension(pi: ExtensionAPI): void {
 
   function refresh(agentState: RuntimeRegistration["agentState"], name?: string, synchronizeName = false): void {
     if (!runtime || !registration) return;
-    registration = runtime.heartbeat(registration, agentState);
+    registration = runtime.heartbeat({ ...registration, tmuxLocation: currentTmuxLocation() }, agentState);
     if (!registration) {
       void clearRuntime();
       return;

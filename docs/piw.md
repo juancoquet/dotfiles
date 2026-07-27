@@ -1,6 +1,6 @@
 # `piw` workspace manager
 
-`piw` manages persistent Pi workspaces in one tmux session named `pi`. It leaves
+`piw` manages persistent Pi workspaces in one tmux session named `piw`. It leaves
 raw `pi` unchanged: use raw `pi` for an ephemeral, scripted, or diagnostic
 conversation; use `piw` when a conversation needs a persistent workspace.
 
@@ -28,7 +28,7 @@ piw .               # create a fresh workspace in this exact directory
 piw path/to/project # create a fresh workspace rooted at that exact path
 ```
 
-Inside tmux, `piw` switches the current client to `pi`; it never nests tmux.
+Inside tmux, `piw` switches the current client to `piw`; it never nests tmux.
 Outside tmux, it attaches to (or creates) that session. Bare `piw` creates a
 workspace when no Pi session exists, returns to a warm workspace when one
 exists, or opens the picker when only cold sessions remain.

@@ -101,7 +101,7 @@ A worktree created by this workflow under its central worktree directory. Its li
 
 ## Workspace model
 
-All managed workspaces live in one tmux session named `pi`. Each warm workspace owns one primary tmux window. Collapsed nvim panes may use hidden implementation-only parking windows, but those are not workspaces and do not appear in the picker.
+All managed workspaces live in one tmux session named `piw`. Each warm workspace owns one primary tmux window. Collapsed nvim panes may use hidden implementation-only parking windows, but those are not workspaces and do not appear in the picker.
 
 A workspace is identified by its Pi session, not by repository or directory. This permits several independent conversations and editor states in the same checkout.
 
@@ -124,12 +124,12 @@ The managed workflow is launched with `piw`. Raw `pi` remains unchanged for quic
 Bare `piw` behaves like reopening a desktop application:
 
 1. If a warm workspace exists, return to the most recently viewed one.
-2. If only cold sessions exist, enter the `pi` tmux session and open the picker.
+2. If only cold sessions exist, enter the `piw` tmux session and open the picker.
 3. If no Pi sessions exist, create a workspace in the invocation directory.
 
 `piw <path>` starts the creation flow rooted at that exact path.
 
-When invoked inside tmux, `piw` switches the current client to the `pi` session instead of nesting tmux. Outside tmux, it attaches to or creates the session normally.
+When invoked inside tmux, `piw` switches the current client to the `piw` session instead of nesting tmux. Outside tmux, it attaches to or creates the session normally.
 
 ## Workspace picker
 

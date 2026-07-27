@@ -14,7 +14,7 @@ function seed(registry: WorkspaceRegistry, agentState: "idle" | "running" = "idl
   registry.upsertRepository({ id: "repo", identity: "directory:/repo", displayName: "repo", sortRank: 1, setupCommand: null });
   registry.upsertRoot({ id: "root", repositoryId: "repo", path: "/repo", initializedAt: null, setupFailure: null });
   registry.upsertSession({ id: "session", rootId: "root", sessionFile: "/sessions/session.jsonl", name: "Session", firstMessage: null, parentSessionFile: null, parentSessionId: null, lastActivityAt: null, archived: false, unread: true, sortRank: 7 });
-  assert.ok(registry.claimRuntimeRegistration({ sessionId: "session", instanceId: "runtime", pid: process.pid, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "pi:1", agentState, heartbeatAt: new Date().toISOString() }, "2000-01-01T00:00:00.000Z"));
+  assert.ok(registry.claimRuntimeRegistration({ sessionId: "session", instanceId: "runtime", pid: process.pid, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "piw:1", agentState, heartbeatAt: new Date().toISOString() }, "2000-01-01T00:00:00.000Z"));
 }
 
 function dependencies(statePaths: ReturnType<typeof paths>, confirmed = true): SessionActionDependencies & { calls: string[] } {
@@ -52,7 +52,7 @@ function preparedActions(agentState: "idle" | "running" = "idle", confirmed = tr
 test("close makes a managed warm session cold without changing its session metadata", async () => {
   const { statePaths, actions } = preparedActions();
   assert.equal(await closeWorkspace("session", actions), "closed");
-  assert.deepEqual(actions.calls, ["close:pi:1"]);
+  assert.deepEqual(actions.calls, ["close:piw:1"]);
   const registry = WorkspaceRegistry.open({ paths: statePaths });
   assert.equal(new RuntimeRegistry(registry, { isPidRunning: () => true, isTmuxLocationRunning: () => true }).state("session"), "cold");
   assert.equal(registry.getSession("session")?.archived, false);
@@ -63,7 +63,7 @@ test("close makes a managed warm session cold without changing its session metad
 test("archiving closes its managed workspace and restoring preserves unread and manual order", async () => {
   const { statePaths, actions } = preparedActions();
   assert.equal(await archiveSession("session", actions), "archived");
-  assert.deepEqual(actions.calls, ["close:pi:1"]);
+  assert.deepEqual(actions.calls, ["close:piw:1"]);
   let registry = WorkspaceRegistry.open({ paths: statePaths });
   assert.equal(registry.getSession("session")?.archived, true);
   assert.equal(registry.getSession("session")?.sortRank, 7);
@@ -88,7 +88,7 @@ test("a running agent is not stopped when confirmation is rejected", async () =>
 test("a confirmed running agent receives a graceful stop request before close", async () => {
   const { actions } = preparedActions("running");
   assert.equal(await closeWorkspace("session", actions), "closed");
-  assert.deepEqual(actions.calls, ["stop:pi:1", "wait", "close:pi:1"]);
+  assert.deepEqual(actions.calls, ["stop:piw:1", "wait", "close:piw:1"]);
 });
 
 test("tree archive confirms its descendant count and archives exactly the selected tree", async () => {

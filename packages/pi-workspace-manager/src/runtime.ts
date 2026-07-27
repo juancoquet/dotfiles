@@ -119,7 +119,7 @@ function removeOrphanedSockets(runtimeDirectory: string, activeWorkspaceIds: Rea
 
 class LocalRuntimeArtifactClient implements RuntimeArtifactClient {
   listManagedWindows(): Array<{ window: string; workspaceId: string }> | undefined {
-    const rows = this.#list("list-windows", "pi", "#{window_id}\t#{@piw_workspace_id}");
+    const rows = this.#list("list-windows", "piw", "#{window_id}\t#{@piw_workspace_id}");
     return rows?.flatMap(([window, workspaceId]) => window && workspaceId ? [{ window, workspaceId }] : []);
   }
 

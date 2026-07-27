@@ -7,7 +7,7 @@ import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
 import { reconcileRuntimeArtifacts, RuntimeRegistry } from "./runtime.ts";
 
-const TMUX_SESSION = "pi";
+const TMUX_SESSION = "piw";
 
 export interface Tmux {
   hasSession(name: string): boolean;

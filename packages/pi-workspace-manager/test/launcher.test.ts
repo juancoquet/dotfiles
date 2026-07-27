@@ -86,13 +86,13 @@ test("returns to the pi session's active warm workspace by switching an existing
   const registry = WorkspaceRegistry.open({ paths: statePaths });
   seedSession(registry);
   const runtime = new RuntimeRegistry(registry, { isPidRunning: () => true, isTmuxLocationRunning: () => true });
-  assert.ok(runtime.claim({ sessionId: "session", instanceId: "workspace", pid: 1, cwd: directory, workspaceId: "workspace", tmuxLocation: "pi:2.0", agentState: "idle" }));
+  assert.ok(runtime.claim({ sessionId: "session", instanceId: "workspace", pid: 1, cwd: directory, workspaceId: "workspace", tmuxLocation: "piw:2.0", agentState: "idle" }));
   const tmux = new FakeTmux();
   tmux.exists = true;
   const deps = dependencies(registry, tmux, directory, runtime);
   deps.insideTmux = () => true;
   assert.equal(await launchPiw(undefined, deps), "returned-to-warm-workspace");
-  assert.deepEqual(tmux.calls, ["switch:pi"]);
+  assert.deepEqual(tmux.calls, ["switch:piw"]);
 });
 
 test("opens the dedicated session without creating a workspace when sessions are cold", async () => {
@@ -102,7 +102,7 @@ test("opens the dedicated session without creating a workspace when sessions are
   const tmux = new FakeTmux();
   tmux.exists = true;
   assert.equal(await launchPiw(undefined, dependencies(registry, tmux, directory)), "opened-picker");
-  assert.deepEqual(tmux.calls, ["picker", "select:@picker", "attach:pi"]);
+  assert.deepEqual(tmux.calls, ["picker", "select:@picker", "attach:piw"]);
 });
 
 test("switches a warm managed workspace without replacing its process", async () => {
@@ -110,11 +110,11 @@ test("switches a warm managed workspace without replacing its process", async ()
   const registry = WorkspaceRegistry.open({ paths: statePaths });
   seedSession(registry);
   const runtime = new RuntimeRegistry(registry, { isPidRunning: () => true, isTmuxLocationRunning: () => true });
-  assert.ok(runtime.claim({ sessionId: "session", instanceId: "warm", pid: 1, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "pi:2.0", agentState: "running" }));
+  assert.ok(runtime.claim({ sessionId: "session", instanceId: "warm", pid: 1, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "piw:2.0", agentState: "running" }));
   const tmux = new FakeTmux();
   tmux.exists = true;
   assert.equal(await openWorkspace("session", dependencies(registry, tmux, directory, runtime)), "opened-warm-workspace");
-  assert.deepEqual(tmux.calls, ["select:pi:2.0", "attach:pi"]);
+  assert.deepEqual(tmux.calls, ["select:piw:2.0", "attach:piw"]);
 });
 
 test("imports a cold raw session at its exact root and resumes its JSONL file", async () => {

@@ -26,7 +26,7 @@ test("claims lifecycle ownership, exposes state, and releases it gracefully", ()
   seed(registry);
   let now = new Date("2026-01-01T00:00:00.000Z");
   const runtime = new RuntimeRegistry(registry, { now: () => now, isPidRunning: () => true, isTmuxLocationRunning: () => true });
-  const registration = runtime.claim({ sessionId: "session", pid: 10, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "pi:1.2", agentState: "idle", instanceId: "one" });
+  const registration = runtime.claim({ sessionId: "session", pid: 10, cwd: "/repo", workspaceId: "workspace", tmuxLocation: "piw:1.2", agentState: "idle", instanceId: "one" });
   assert.ok(registration);
   assert.deepEqual(runtime.ownership("session"), { registration, state: "managed-warm" });
 
