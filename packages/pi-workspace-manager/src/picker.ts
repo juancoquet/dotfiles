@@ -9,7 +9,7 @@ import { archiveSession, closeWorkspace } from "./session-actions.ts";
 import { createManagedWorktree, listGitWorktrees } from "./worktrees.ts";
 import type { PiSession, Repository, Root } from "./types.ts";
 
-const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
+const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Alt+j/k move session  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const UNREAD_BELL = "󰂚";
 const HELP = [
@@ -19,6 +19,8 @@ const HELP = [
   "Ctrl+S     Rerun or change root setup",
   "Ctrl+E     Rename a session",
   "Ctrl+U     Toggle unread",
+  "Alt+j/k   Move a session down/up within its group",
+  "Alt+Shift+j/k  Move the highlighted group down/up",
   "Ctrl+W     Close a warm workspace",
   "Ctrl+A     Archive a session",
   "Ctrl+R     Restore one archived session",
@@ -125,7 +127,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker"): string[] {
     "--with-nth=1",
     `--header=${PRIMARY_HINTS}`,
     "--prompt=Workspace> ",
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
+    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
     "--track-current",
     "--select-1",
   ];
@@ -194,6 +196,32 @@ export async function renameSessionFromPicker(
     const name = dependencies.promptName(session.name ?? "");
     return name === undefined ? false : dependencies.rename(sessionId, name, registry);
   } finally { registry.close(); }
+}
+
+export type ReorderResult = "moved" | "unavailable" | "filtered";
+
+/** Moves a session or its repository group, unless a fuzzy filter hides adjacent items. */
+export async function reorderFromPicker(
+  kind: "session" | "group",
+  sessionId: string,
+  direction: "up" | "down",
+  query: string,
+  dependencies: PickerListingDependencies = defaultListingDependencies(),
+): Promise<ReorderResult> {
+  if (query.trim()) return "filtered";
+  const registry = dependencies.openRegistry();
+  try {
+    await dependencies.catalog(registry);
+    const moved = kind === "session"
+      ? registry.moveSession(sessionId, direction)
+      : registry.moveRepositoryForSession(sessionId, direction);
+    return moved ? "moved" : "unavailable";
+  } finally { registry.close(); }
+}
+
+function explainReorder(result: ReorderResult): void {
+  if (result !== "filtered") return;
+  spawnSync("tmux", ["display-message", "Clear the filter before reordering workspaces."], { stdio: "ignore" });
 }
 
 export function directoryPickerArguments(defaultRoot: string): string[] {
@@ -323,6 +351,12 @@ if (import.meta.main) {
   else if (argument === "--create" && extra.length === 0) await createWorkspaceFromPicker(sessionId);
   else if (argument === "--setup" && sessionId && !frame && extra.length === 0) await rerunRootSetupFromPicker(sessionId);
   else if (argument === "--rename" && sessionId && !frame && extra.length === 0) await renameSessionFromPicker(sessionId);
+  else if (argument === "--move-session" && sessionId && (frame === "up" || frame === "down") && extra.length <= 1) {
+    explainReorder(await reorderFromPicker("session", sessionId, frame, extra[0] ?? ""));
+  }
+  else if (argument === "--move-group" && sessionId && (frame === "up" || frame === "down") && extra.length <= 1) {
+    explainReorder(await reorderFromPicker("group", sessionId, frame, extra[0] ?? ""));
+  }
   else if (argument === "--close" && sessionId && !frame && extra.length === 0) await closeWorkspace(sessionId);
   else if (argument === "--archive" && sessionId && !frame && extra.length === 0) await archiveSession(sessionId);
   else if (argument === "--restore" && !sessionId && !frame && extra.length === 0) await restoreArchivedSessionFromPicker();
@@ -339,5 +373,5 @@ if (import.meta.main) {
     if (result === "session-active-elsewhere") process.stderr.write("This Pi session is active elsewhere and cannot be opened here.\n");
     else if (result === "session-not-found") process.stderr.write("This Pi session no longer exists.\n");
   } else if (!argument) await showWorkspacePicker();
-  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--close <session-id>|--archive <session-id>|--restore|--toggle-unread <session-id>|--open <session-id>]");
+  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--restore|--toggle-unread <session-id>|--open <session-id>]");
 }

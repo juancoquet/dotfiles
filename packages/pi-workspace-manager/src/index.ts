@@ -5,8 +5,8 @@ export type { CatalogGroup, CatalogResult, RootInspector, SessionCatalogSource }
 export { WorkspaceRegistry } from "./database.ts";
 export { createNewWorkspace, launchPiw, openWorkspace } from "./launcher.ts";
 export type { LaunchDependencies, LaunchResult, OpenWorkspaceResult, Tmux } from "./launcher.ts";
-export { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listArchivedWorkspacePicker, listWorkspacePicker, renameSessionFromPicker, renderLoading, renderWorkspacePicker, rerunRootSetupFromPicker, restoreArchivedSessionFromPicker, showWorkspacePicker } from "./picker.ts";
-export type { PickerCreationDependencies, PickerDependencies, PickerListingDependencies, PickerProcess, PickerRenameDependencies } from "./picker.ts"
+export { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listArchivedWorkspacePicker, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderLoading, renderWorkspacePicker, rerunRootSetupFromPicker, restoreArchivedSessionFromPicker, showWorkspacePicker } from "./picker.ts";
+export type { PickerCreationDependencies, PickerDependencies, PickerListingDependencies, PickerProcess, PickerRenameDependencies, ReorderResult } from "./picker.ts"
 export { renameSession } from "./session-names.ts";
 export type { PiSessionNameWriter, SessionNameStore } from "./session-names.ts";
 export { createManagedWorktree, listGitWorktrees, LocalGit } from "./worktrees.ts";

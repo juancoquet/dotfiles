@@ -143,6 +143,55 @@ export class WorkspaceRegistry {
     return this.#write(() => this.#database.prepare("UPDATE sessions SET unread = ? WHERE id = ?").run(Number(unread), id).changes === 1);
   }
 
+  moveSession(id: string, direction: "up" | "down"): boolean {
+    return this.#write(() => {
+      const current = this.#database.prepare(`
+        SELECT s.id, s.sort_rank, r.repository_id
+        FROM sessions s JOIN roots r ON r.id = s.root_id WHERE s.id = ?
+      `).get(id) as { id: string; sort_rank: number; repository_id: string | null } | undefined;
+      if (!current?.repository_id) return false;
+      const comparison = direction === "up" ? "<" : ">";
+      const order = direction === "up" ? "DESC" : "ASC";
+      const adjacent = this.#database.prepare(`
+        SELECT s.id, s.sort_rank
+        FROM sessions s JOIN roots r ON r.id = s.root_id
+        WHERE r.repository_id = ? AND s.sort_rank ${comparison} ?
+        ORDER BY s.sort_rank ${order} LIMIT 1
+      `).get(current.repository_id, current.sort_rank) as { id: string; sort_rank: number } | undefined;
+      if (!adjacent) return false;
+      this.#database.prepare("UPDATE sessions SET sort_rank = ? WHERE id = ?").run(adjacent.sort_rank, current.id);
+      this.#database.prepare("UPDATE sessions SET sort_rank = ? WHERE id = ?").run(current.sort_rank, adjacent.id);
+      return true;
+    });
+  }
+
+  moveRepositoryForSession(sessionId: string, direction: "up" | "down"): boolean {
+    return this.#write(() => {
+      const current = this.#database.prepare(`
+        SELECT r.repository_id, p.sort_rank FROM roots r
+        JOIN sessions s ON s.root_id = r.id
+        JOIN repositories p ON p.id = r.repository_id
+        WHERE s.id = ?
+      `).get(sessionId) as { repository_id: string | null; sort_rank: number } | undefined;
+      if (!current?.repository_id) return false;
+      const comparison = direction === "up" ? "<" : ">";
+      const order = direction === "up" ? "DESC" : "ASC";
+      const adjacent = this.#database.prepare(`
+        SELECT id, sort_rank FROM repositories p
+        WHERE sort_rank ${comparison} ?
+          AND EXISTS (
+            SELECT 1 FROM roots r JOIN sessions s ON s.root_id = r.id
+            WHERE r.repository_id = p.id AND s.archived = 0
+          )
+        ORDER BY sort_rank ${order} LIMIT 1
+      `).get(current.sort_rank) as { id: string; sort_rank: number } | undefined;
+      if (!adjacent) return false;
+      this.#database.prepare("UPDATE repositories SET sort_rank = ? WHERE id = ?").run(adjacent.sort_rank, current.repository_id);
+      this.#database.prepare("UPDATE repositories SET sort_rank = ? WHERE id = ?").run(current.sort_rank, adjacent.id);
+      return true;
+    });
+  }
+
   setSessionName(id: string, name: string | null): boolean {
     return this.#write(() => this.#database.prepare("UPDATE sessions SET name = ? WHERE id = ?").run(name, id).changes === 1);
   }

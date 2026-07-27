@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listWorkspacePicker, renameSessionFromPicker, renderWorkspacePicker, showWorkspacePicker, WorkspaceRegistry, type PickerProcess } from "../src/index.ts";
+import { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderWorkspacePicker, showWorkspacePicker, WorkspaceRegistry, type PickerProcess } from "../src/index.ts";
 
 function paths() {
   const directory = mkdtempSync(join(tmpdir(), "piw-picker-"));
@@ -46,6 +46,33 @@ test("renders independent runtime and unread columns", () => {
   assert.match(listing, /⠙     \/worktrees\/one/);
   assert.match(listing, /◌     \/two/);
   registry.close();
+});
+
+test("reorders sessions only within their group and reorders groups persistently", async () => {
+  const statePaths = paths();
+  const registry = WorkspaceRegistry.open({ paths: statePaths });
+  seed(registry);
+  registry.close();
+  const dependencies = { openRegistry: () => WorkspaceRegistry.open({ paths: statePaths }), catalog: async () => {} };
+
+  assert.equal(await reorderFromPicker("session", "first", "up", "", dependencies), "moved");
+  let reopened = WorkspaceRegistry.open({ paths: statePaths });
+  assert.equal(reopened.getSession("first")?.sortRank, 1);
+  assert.equal(reopened.getSession("second")?.sortRank, 2);
+  assert.equal(reopened.getSession("third")?.sortRank, 1);
+  reopened.close();
+
+  assert.equal(await reorderFromPicker("group", "first", "up", "", dependencies), "moved");
+  reopened = WorkspaceRegistry.open({ paths: statePaths });
+  assert.equal(reopened.getRepository("one")?.sortRank, 1);
+  assert.equal(reopened.getRepository("two")?.sortRank, 2);
+  const beforeFilteredMove = renderWorkspacePicker(reopened);
+  reopened.close();
+
+  assert.equal(await reorderFromPicker("session", "first", "down", "first", dependencies), "filtered");
+  reopened = WorkspaceRegistry.open({ paths: statePaths });
+  assert.equal(renderWorkspacePicker(reopened), beforeFilteredMove);
+  reopened.close();
 });
 
 test("opens the selected session and ignores repository headers", async () => {
@@ -155,6 +182,8 @@ test("shows loading while fzf reloads empty and catalog-error states without sor
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("start:reload(~/.local/bin/piw-picker --list $(( $(date +%s%N) / 100000000 )))+enable-search")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-r:execute(~/.local/bin/piw-picker --restore)+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-e:execute(~/.local/bin/piw-picker --rename {2})+reload(")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("alt-j:execute(~/.local/bin/piw-picker --move-session {2} down {q})+reload(")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("alt-shift-j:execute(~/.local/bin/piw-picker --move-group {2} down {q})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-w:execute(~/.local/bin/piw-picker --close {2})+abort")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-a:execute(~/.local/bin/piw-picker --archive {2})+reload(")));
   assert.ok(calls[0]!.arguments_.includes("--track-current"));
