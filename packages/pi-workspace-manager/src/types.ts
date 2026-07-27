@@ -1,0 +1,56 @@
+export type RepositoryId = string;
+export type RootId = string;
+export type SessionId = string;
+
+export interface Repository {
+  id: RepositoryId;
+  identity: string;
+  displayName: string;
+  sortRank: number;
+  setupCommand: string | null;
+}
+
+export interface Root {
+  id: RootId;
+  repositoryId: RepositoryId | null;
+  path: string;
+  initializedAt: string | null;
+  setupFailure: string | null;
+}
+
+export interface PiSession {
+  id: SessionId;
+  rootId: RootId;
+  sessionFile: string;
+  name: string | null;
+  archived: boolean;
+  unread: boolean;
+  sortRank: number;
+}
+
+export interface ManagedWorktree {
+  id: string;
+  repositoryId: RepositoryId;
+  rootId: RootId;
+  path: string;
+  branch: string;
+}
+
+export interface RuntimeRegistration {
+  sessionId: SessionId;
+  pid: number;
+  workspaceId: string | null;
+  tmuxLocation: string | null;
+  agentState: "idle" | "running";
+  heartbeatAt: string;
+}
+
+export interface StatePaths {
+  stateDirectory: string;
+  databasePath: string;
+  runtimeDirectory: string;
+}
+
+export interface RegistryOptions {
+  paths?: StatePaths;
+}

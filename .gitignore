@@ -1,4 +1,5 @@
 .DS_Store
+node_modules/
 
 # tmux plugins are installed locally via tpm, not vendored
 configs/tmux/plugins/
