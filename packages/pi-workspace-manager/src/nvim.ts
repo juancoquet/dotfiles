@@ -58,7 +58,7 @@ export class NvimPaneManager {
     const width = this.#tmux.run(["display-message", "-p", "-t", pane, "#{pane_width}"]).trim();
     this.#tmux.run(["set-window-option", "-t", window, WIDTH_OPTION, width]);
     this.#ensureParkingSession();
-    this.#tmux.run(["break-pane", "-d", "-s", pane, "-t", `${PARKING_SESSION}:parking`]);
+    this.#tmux.run(["break-pane", "-d", "-a", "-s", pane, "-t", `${PARKING_SESSION}:parking`]);
   }
 
   #ensureParkingSession(): void {

@@ -53,7 +53,7 @@ test("collapse parks the live editor and reveal rejoins it at its saved width", 
   const manager = new NvimPaneManager(tmux);
   assert.equal(manager.toggle(), "collapsed");
   assert.ok(tmux.calls.some((args) => args.join(" ") === "new-session -d -s piw-parking -n parking"));
-  assert.ok(tmux.calls.some((args) => args.join(" ") === "break-pane -d -s %2 -t piw-parking:parking"));
+  assert.ok(tmux.calls.some((args) => args.join(" ") === "break-pane -d -a -s %2 -t piw-parking:parking"));
 
   tmux.calls.length = 0;
   tmux.set(allPanes, `%1\t${WINDOW}\t\t\n%2\t@parking\t1\t${WORKSPACE}\n`);
