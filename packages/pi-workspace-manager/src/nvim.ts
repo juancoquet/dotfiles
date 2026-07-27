@@ -51,6 +51,7 @@ export class NvimPaneManager {
       .map(([key, value]) => `${key}=${value}`), "nvim"];
     const pane = this.#tmux.run(["split-window", "-h", "-p", "50", "-d", "-P", "-F", "#{pane_id}", "-t", window, "-c", root, ...command]).trim();
     this.#markEditor(pane, workspaceId);
+    this.#tmux.run(["select-pane", "-t", pane]);
   }
 
   #collapse(pane: string, window: string, workspaceId: string): void {
@@ -71,6 +72,7 @@ export class NvimPaneManager {
     this.#tmux.run(["join-pane", "-h", "-d", "-s", pane, "-t", target]);
     const width = this.#option("show-window-options", window, WIDTH_OPTION);
     if (width) this.#tmux.run(["resize-pane", "-t", pane, "-x", width]);
+    this.#tmux.run(["select-pane", "-t", pane]);
   }
 
   #markEditor(pane: string, workspaceId: string): void {

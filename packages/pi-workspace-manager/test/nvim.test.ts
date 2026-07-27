@@ -42,6 +42,7 @@ test("first reveal lazily starts nvim in the exact workspace root at half width"
   assert.ok(tmux.calls.some((args) => args.includes(`PIW_WORKSPACE_ID=${WORKSPACE}`)));
   assert.ok(tmux.calls.some((args) => args.join(" ") === `set-option -p -t %2 @piw_nvim 1`));
   assert.ok(tmux.calls.some((args) => args.join(" ") === `set-option -p -t %2 @piw_nvim_workspace_id ${WORKSPACE}`));
+  assert.ok(tmux.calls.some((args) => args.join(" ") === "select-pane -t %2"));
 });
 
 test("collapse parks the live editor and reveal rejoins it at its saved width", () => {
@@ -61,6 +62,7 @@ test("collapse parks the live editor and reveal rejoins it at its saved width", 
   assert.equal(manager.toggle(), "revealed");
   assert.ok(tmux.calls.some((args) => args.join(" ") === "join-pane -h -d -s %2 -t %1"));
   assert.ok(tmux.calls.some((args) => args.join(" ") === "resize-pane -t %2 -x 73"));
+  assert.ok(tmux.calls.some((args) => args.join(" ") === "select-pane -t %2"));
 });
 
 test("does nothing outside a managed workspace", () => {
