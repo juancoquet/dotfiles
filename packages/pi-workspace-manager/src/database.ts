@@ -200,6 +200,10 @@ export class WorkspaceRegistry {
     return this.#write(() => this.#database.prepare("UPDATE sessions SET archived = ? WHERE id = ?").run(Number(archived), id).changes === 1);
   }
 
+  removeSession(id: string): boolean {
+    return this.#write(() => this.#database.prepare("DELETE FROM sessions WHERE id = ?").run(id).changes === 1);
+  }
+
   getSession(id: string): PiSession | undefined {
     const row = this.#database.prepare("SELECT id, root_id, session_file, name, first_message, parent_session_file, parent_session_id, last_activity_at, archived, unread, sort_rank FROM sessions WHERE id = ?").get(id) as SessionRow | undefined;
     return row && toSession(row);

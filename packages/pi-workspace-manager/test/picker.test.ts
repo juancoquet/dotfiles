@@ -186,6 +186,8 @@ test("shows loading while fzf reloads empty and catalog-error states without sor
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("alt-shift-j:execute(~/.local/bin/piw-picker --move-group {2} down {q})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-w:execute(~/.local/bin/piw-picker --close {2})+abort")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-a:execute(~/.local/bin/piw-picker --archive {2})+reload(")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-a:execute(~/.local/bin/piw-picker --archive-tree {2})+reload(")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-x:execute(~/.local/bin/piw-picker --trash {2})+reload(")));
   assert.ok(calls[0]!.arguments_.includes("--track-current"));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-n:execute(~/.local/bin/piw-picker --create {2})+abort")));
   assert.deepEqual(directoryPickerArguments("/repo/src"), [

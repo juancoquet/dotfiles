@@ -6,7 +6,7 @@ import { createNewWorkspace, openWorkspace } from "./launcher.ts";
 import { RuntimeRegistry } from "./runtime.ts";
 import { renderSessionPreview } from "./preview.ts";
 import { renameSession } from "./session-names.ts";
-import { archiveSession, closeWorkspace } from "./session-actions.ts";
+import { archiveSession, archiveSessionTree, closeWorkspace, trashSession } from "./session-actions.ts";
 import { createManagedWorktree, listGitWorktrees } from "./worktrees.ts";
 import type { PiSession, Repository, Root } from "./types.ts";
 
@@ -25,6 +25,8 @@ const HELP = [
   "Alt+Shift+j/k  Move the highlighted group down/up",
   "Ctrl+W     Close a warm workspace",
   "Ctrl+A     Archive a session",
+  "Ctrl+Alt+A Archive a session and descendants",
+  "Ctrl+Alt+X Move a cold session to macOS Trash",
   "Ctrl+R     Restore one archived session",
   "Esc        Return to the picker",
   "",
@@ -132,7 +134,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
     "--prompt=Workspace> ",
     `--preview=${command} --preview {2}`,
     `--preview-window=${previewWindow}`,
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
+    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-alt-a:execute(${command} --archive-tree {2})+${refresh},ctrl-alt-x:execute(${command} --trash {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
     "--track-current",
     "--select-1",
   ];
@@ -368,6 +370,12 @@ if (import.meta.main) {
   }
   else if (argument === "--close" && sessionId && !frame && extra.length === 0) await closeWorkspace(sessionId);
   else if (argument === "--archive" && sessionId && !frame && extra.length === 0) await archiveSession(sessionId);
+  else if (argument === "--archive-tree" && sessionId && !frame && extra.length === 0) await archiveSessionTree(sessionId);
+  else if (argument === "--trash" && sessionId && !frame && extra.length === 0) {
+    const result = await trashSession(sessionId);
+    if (result === "unsafe") process.stderr.write("Cannot trash a running or active Pi session. Close it first.\n");
+    else if (result === "failed") process.stderr.write("Could not move this Pi session to macOS Trash; its history was retained.\n");
+  }
   else if (argument === "--restore" && !sessionId && !frame && extra.length === 0) await restoreArchivedSessionFromPicker();
   else if (argument === "--toggle-unread" && sessionId && !frame && extra.length === 0) {
     const registry = WorkspaceRegistry.open();
@@ -382,5 +390,5 @@ if (import.meta.main) {
     if (result === "session-active-elsewhere") process.stderr.write("This Pi session is active elsewhere and cannot be opened here.\n");
     else if (result === "session-not-found") process.stderr.write("This Pi session no longer exists.\n");
   } else if (!argument) await showWorkspacePicker();
-  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--restore|--toggle-unread <session-id>|--preview <session-id>|--open <session-id>]");
+  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--archive-tree <session-id>|--trash <session-id>|--restore|--toggle-unread <session-id>|--preview <session-id>|--open <session-id>]");
 }

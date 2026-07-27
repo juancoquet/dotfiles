@@ -18,8 +18,8 @@ export { appendReviewComment, renderReviewComment, serveReviewComments } from ".
 export type { ReviewComment, ReviewCommentSocket } from "./review-comments.ts";
 export type { NvimToggleResult, TmuxPaneClient } from "./nvim.ts";
 export { RuntimeRegistry } from "./runtime.ts";
-export { archiveSession, closeWorkspace, restoreSession } from "./session-actions.ts";
-export type { ArchiveSessionResult, CloseSessionResult, SessionActionDependencies, WorkspaceCloser } from "./session-actions.ts";
+export { archiveSession, archiveSessionTree, closeWorkspace, restoreSession, trashSession } from "./session-actions.ts";
+export type { ArchiveSessionResult, ArchiveTreeResult, CloseSessionResult, SessionActionDependencies, SessionTrasher, TrashSessionResult, WorkspaceCloser } from "./session-actions.ts";
 export { resolveStatePaths } from "./paths.ts";
 export type {
   ManagedWorktree,

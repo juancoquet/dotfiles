@@ -1,5 +1,5 @@
 # Pi Workspace Manager
-current issue: 017
+current issue: 018
 
 ## Overview
 
