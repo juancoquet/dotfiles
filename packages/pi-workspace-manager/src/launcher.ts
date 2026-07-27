@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { bootstrapRoot, type PreparedRoot } from "./bootstrap.ts";
 import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
-import { RuntimeRegistry } from "./runtime.ts";
+import { reconcileRuntimeArtifacts, RuntimeRegistry } from "./runtime.ts";
 
 const TMUX_SESSION = "pi";
 
@@ -40,6 +40,7 @@ export async function launchPiw(path: string | undefined, dependencies: LaunchDe
     await dependencies.catalog(registry);
     const runtime = dependencies.runtime(registry);
     runtime.reconcile();
+    reconcileRuntimeArtifacts(registry);
     const hasWarmWorkspace = registry.listRuntimeRegistrations().some((registration) =>
       registration.workspaceId !== null && registration.tmuxLocation?.startsWith(`${TMUX_SESSION}:`),
     );

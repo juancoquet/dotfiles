@@ -4,7 +4,7 @@ import { bootstrapRoot } from "./bootstrap.ts";
 import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
 import { createNewWorkspace, openWorkspace } from "./launcher.ts";
-import { RuntimeRegistry } from "./runtime.ts";
+import { reconcileRuntimeArtifacts, RuntimeRegistry } from "./runtime.ts";
 import { renderSessionPreview } from "./preview.ts";
 import { renameSession } from "./session-names.ts";
 import { archiveSession, archiveSessionTree, closeWorkspace, trashSession } from "./session-actions.ts";
@@ -86,6 +86,9 @@ export async function listWorkspacePicker(dependencies: PickerListingDependencie
   try {
     try {
       await dependencies.catalog(registry);
+      const runtime = new RuntimeRegistry(registry);
+      runtime.reconcile();
+      reconcileRuntimeArtifacts(registry);
     } catch (error) {
       return renderCatalogError(error);
     }

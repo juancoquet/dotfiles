@@ -1,9 +1,44 @@
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { lstatSync, readdirSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
 import { WorkspaceRegistry } from "./database.ts";
 import type { RuntimeOwnership, RuntimeRegistration, RuntimeRegistryOptions, RuntimeState } from "./types.ts";
 
 const DEFAULT_STALE_AFTER_MS = 15_000;
+
+export interface RuntimeArtifactClient {
+  /** Undefined means tmux could not be queried; reconciliation must not mutate it. */
+  listManagedWindows(): Array<{ window: string; workspaceId: string }> | undefined;
+  listParkingEditorPanes(): Array<{ pane: string; workspaceId: string }> | undefined;
+  killWindow(window: string): void;
+  killPane(pane: string): void;
+  killParkingSession(): void;
+}
+
+/** Removes stale manager sockets and parked nvim panes after runtime reconciliation. */
+export function reconcileRuntimeArtifacts(
+  registry: WorkspaceRegistry,
+  artifacts: RuntimeArtifactClient = new LocalRuntimeArtifactClient(),
+): void {
+  const activeWorkspaceIds = new Set(registry.listRuntimeRegistrations()
+    .flatMap((registration) => registration.workspaceId ? [registration.workspaceId] : []));
+  removeOrphanedSockets(registry.paths.runtimeDirectory, activeWorkspaceIds);
+
+  const windows = artifacts.listManagedWindows();
+  if (windows) {
+    for (const window of windows) {
+      if (!activeWorkspaceIds.has(window.workspaceId)) artifacts.killWindow(window.window);
+    }
+  }
+
+  const panes = artifacts.listParkingEditorPanes();
+  if (!panes) return;
+  for (const pane of panes) {
+    if (!activeWorkspaceIds.has(pane.workspaceId)) artifacts.killPane(pane.pane);
+  }
+  if (!panes.some((pane) => activeWorkspaceIds.has(pane.workspaceId))) artifacts.killParkingSession();
+}
 
 export class RuntimeRegistry {
   readonly #registry: WorkspaceRegistry;
@@ -66,6 +101,53 @@ export class RuntimeRegistry {
 
   #staleBefore(): string {
     return new Date(this.#now().getTime() - this.#staleAfterMs).toISOString();
+  }
+}
+
+function removeOrphanedSockets(runtimeDirectory: string, activeWorkspaceIds: ReadonlySet<string>): void {
+  try {
+    for (const name of readdirSync(runtimeDirectory)) {
+      const workspaceId = /^workspace-(.+)\.sock$/.exec(name)?.[1];
+      if (!workspaceId || activeWorkspaceIds.has(workspaceId)) continue;
+      const path = join(runtimeDirectory, name);
+      if (lstatSync(path).isSocket()) unlinkSync(path);
+    }
+  } catch (error) {
+    if (!(error instanceof Error) || !("code" in error) || error.code !== "ENOENT") throw error;
+  }
+}
+
+class LocalRuntimeArtifactClient implements RuntimeArtifactClient {
+  listManagedWindows(): Array<{ window: string; workspaceId: string }> | undefined {
+    const rows = this.#list("list-windows", "pi", "#{window_id}\t#{@piw_workspace_id}");
+    return rows?.flatMap(([window, workspaceId]) => window && workspaceId ? [{ window, workspaceId }] : []);
+  }
+
+  listParkingEditorPanes(): Array<{ pane: string; workspaceId: string }> | undefined {
+    const rows = this.#list("list-panes", "piw-parking", "#{pane_id}\t#{@piw_nvim_workspace_id}");
+    return rows?.flatMap(([pane, workspaceId]) => pane && workspaceId ? [{ pane, workspaceId }] : []);
+  }
+
+  killWindow(window: string): void {
+    try { execFileSync("tmux", ["kill-window", "-t", window], { stdio: "ignore", timeout: 500 }); } catch { /* tmux changed during reconciliation */ }
+  }
+
+  killPane(pane: string): void {
+    try { execFileSync("tmux", ["kill-pane", "-t", pane], { stdio: "ignore", timeout: 500 }); } catch { /* tmux changed during reconciliation */ }
+  }
+
+  killParkingSession(): void {
+    try { execFileSync("tmux", ["kill-session", "-t", "piw-parking"], { stdio: "ignore", timeout: 500 }); } catch { /* no parking session remains */ }
+  }
+
+  #list(command: "list-windows" | "list-panes", target: string, format: string): string[][] | undefined {
+    try {
+      return execFileSync("tmux", [command, "-t", target, "-F", format], {
+        encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 500,
+      }).trim().split("\n").map((line) => line.split("\t"));
+    } catch {
+      return undefined;
+    }
   }
 }
 

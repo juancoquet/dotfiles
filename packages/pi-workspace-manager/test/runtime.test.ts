@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { RuntimeRegistry, WorkspaceRegistry } from "../src/index.ts";
+import { reconcileRuntimeArtifacts, RuntimeRegistry, WorkspaceRegistry, type RuntimeArtifactClient } from "../src/index.ts";
 
 function paths() {
   const directory = mkdtempSync(join(tmpdir(), "piw-runtime-"));
@@ -73,5 +74,57 @@ test("expires registrations with a dead process, stale heartbeat, or missing tmu
   }
   runtime.reconcile();
   assert.deepEqual(registry.listRuntimeRegistrations(), []);
+  runtime.reconcile();
+  assert.deepEqual(registry.listRuntimeRegistrations(), []);
   registry.close();
+});
+
+class FakeArtifacts implements RuntimeArtifactClient {
+  readonly killed: string[] = [];
+  readonly killedWindows: string[] = [];
+  readonly panes: Array<{ pane: string; workspaceId: string }>;
+  readonly windows: Array<{ window: string; workspaceId: string }>;
+  parkingSessionsKilled = 0;
+  constructor(panes: Array<{ pane: string; workspaceId: string }>, windows: Array<{ window: string; workspaceId: string }> = []) {
+    this.panes = panes;
+    this.windows = windows;
+  }
+  listManagedWindows(): Array<{ window: string; workspaceId: string }> { return this.windows; }
+  listParkingEditorPanes(): Array<{ pane: string; workspaceId: string }> { return this.panes; }
+  killWindow(window: string): void { this.killedWindows.push(window); }
+  killPane(pane: string): void {
+    this.killed.push(pane);
+    const index = this.panes.findIndex((candidate) => candidate.pane === pane);
+    if (index >= 0) this.panes.splice(index, 1);
+  }
+  killParkingSession(): void { this.parkingSessionsKilled += 1; }
+}
+
+test("cleans stale manager sockets and orphaned parking panes without touching warm workspaces", async () => {
+  const statePaths = paths();
+  const registry = WorkspaceRegistry.open({ paths: statePaths });
+  const socketPath = join(statePaths.runtimeDirectory, "workspace-stale.sock");
+  const server = createServer();
+  await new Promise<void>((resolve, reject) => server.once("error", reject).listen(socketPath, resolve));
+  writeFileSync(join(statePaths.runtimeDirectory, "keep.txt"), "keep");
+  assert.ok(registry.claimRuntimeRegistration({
+    sessionId: "warm", instanceId: "warm", pid: process.pid, cwd: "/repo", workspaceId: "warm-workspace",
+    tmuxLocation: null, agentState: "idle", heartbeatAt: new Date().toISOString(),
+  }, "2000-01-01T00:00:00.000Z"));
+  const artifacts = new FakeArtifacts(
+    [{ pane: "%stale", workspaceId: "stale" }, { pane: "%warm", workspaceId: "warm-workspace" }],
+    [{ window: "@stale", workspaceId: "stale" }, { window: "@warm", workspaceId: "warm-workspace" }],
+  );
+
+  reconcileRuntimeArtifacts(registry, artifacts);
+  assert.equal(existsSync(socketPath), false);
+  assert.equal(existsSync(join(statePaths.runtimeDirectory, "keep.txt")), true);
+  assert.deepEqual(artifacts.killed, ["%stale"]);
+  assert.deepEqual(artifacts.killedWindows, ["@stale"]);
+  assert.equal(artifacts.parkingSessionsKilled, 0);
+
+  reconcileRuntimeArtifacts(registry, artifacts);
+  assert.deepEqual(artifacts.killed, ["%stale"]);
+  registry.close();
+  await new Promise<void>((resolve) => server.close(() => resolve()));
 });
