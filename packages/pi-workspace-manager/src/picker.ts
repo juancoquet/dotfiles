@@ -161,7 +161,6 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
     `--preview=${command} --preview {2}`,
     `--preview-window=${previewWindow}`,
     `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),${bindings.join(",")}`,
-    "--track-current",
     "--select-1",
   ];
 }
