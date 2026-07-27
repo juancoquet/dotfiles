@@ -148,7 +148,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
   const animate = "execute-silent(while kill -0 $PPID 2>/dev/null; do sleep 0.1; tmux send-keys -t \"$TMUX_PANE\" C-r 2>/dev/null || exit; done)";
   const bindings = PICKER_BINDINGS
     .filter((binding) => binding.action !== "accept")
-    .map((binding) => `${binding.key.toLowerCase().replaceAll("+", "-")}:${binding.action.replaceAll("{command}", command).replaceAll("{refresh}", refresh)}`);
+    .map((binding) => `${fzfKey(binding.key)}:${binding.action.replaceAll("{command}", command).replaceAll("{refresh}", refresh)}`);
   const previewWindow = terminalColumns >= 110 ? "right:50%:wrap" : "right:50%:wrap:hidden";
   return [
     "--no-sort",
@@ -266,6 +266,15 @@ export function directoryPickerArguments(defaultRoot: string): string[] {
     "--header=Edit the exact directory path, then press Enter. Esc cancels.",
     "--bind=enter:accept",
   ];
+}
+
+function fzfKey(key: string): string {
+  const parts = key.split("+");
+  const character = parts.pop();
+  if (!character) throw new Error(`Invalid picker key: ${key}`);
+  const shifted = parts.includes("Shift");
+  const modifiers = parts.filter((part) => part !== "Shift").map((part) => part.toLowerCase());
+  return [...modifiers, shifted ? character.toUpperCase() : character.toLowerCase()].join("-");
 }
 
 function renderSession(session: PiSession, root: Root, runtime: RuntimeRegistry, frame: number): string {
