@@ -4,12 +4,13 @@ import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
 import { createNewWorkspace, openWorkspace } from "./launcher.ts";
 import { RuntimeRegistry } from "./runtime.ts";
+import { renderSessionPreview } from "./preview.ts";
 import { renameSession } from "./session-names.ts";
 import { archiveSession, closeWorkspace } from "./session-actions.ts";
 import { createManagedWorktree, listGitWorktrees } from "./worktrees.ts";
 import type { PiSession, Repository, Root } from "./types.ts";
 
-const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Alt+j/k move session  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
+const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Ctrl+/ preview  Alt+j/k move session  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const UNREAD_BELL = "󰂚";
 const HELP = [
@@ -19,6 +20,7 @@ const HELP = [
   "Ctrl+S     Rerun or change root setup",
   "Ctrl+E     Rename a session",
   "Ctrl+U     Toggle unread",
+  "Ctrl+/     Toggle session preview",
   "Alt+j/k   Move a session down/up within its group",
   "Alt+Shift+j/k  Move the highlighted group down/up",
   "Ctrl+W     Close a warm workspace",
@@ -115,10 +117,11 @@ export function renderWorkspacePicker(registry: WorkspaceRegistry, frame = 0): s
     .join("\n") + "\n";
 }
 
-export function fzfArguments(command = "~/.local/bin/piw-picker"): string[] {
+export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumns = process.stdout.columns): string[] {
   const listing = `${command} --list $(( $(date +%s%N) / 100000000 ))`;
   const refresh = `reload(${listing})`;
   const animate = "execute-silent(while kill -0 $PPID 2>/dev/null; do sleep 0.1; tmux send-keys -t \"$TMUX_PANE\" C-r 2>/dev/null || exit; done)";
+  const previewWindow = terminalColumns >= 110 ? "right:50%:wrap" : "right:50%:wrap:hidden";
   return [
     "--no-sort",
     "--disabled",
@@ -127,7 +130,9 @@ export function fzfArguments(command = "~/.local/bin/piw-picker"): string[] {
     "--with-nth=1",
     `--header=${PRIMARY_HINTS}`,
     "--prompt=Workspace> ",
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
+    `--preview=${command} --preview {2}`,
+    `--preview-window=${previewWindow}`,
+    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
     "--track-current",
     "--select-1",
   ];
@@ -347,6 +352,10 @@ if (import.meta.main) {
   const [argument, sessionId, frame, ...extra] = process.argv.slice(2);
   if (argument === "--help" && !sessionId) showHelp();
   else if (argument === "--list" && extra.length === 0) process.stdout.write(await listWorkspacePicker(undefined, Number(frame) || 0));
+  else if (argument === "--preview" && sessionId && !frame && extra.length === 0) {
+    const registry = WorkspaceRegistry.open();
+    try { process.stdout.write(renderSessionPreview(sessionId, registry)); } finally { registry.close(); }
+  }
   else if (argument === "--list-archives" && !sessionId && !frame && extra.length === 0) process.stdout.write(await listArchivedWorkspacePicker());
   else if (argument === "--create" && extra.length === 0) await createWorkspaceFromPicker(sessionId);
   else if (argument === "--setup" && sessionId && !frame && extra.length === 0) await rerunRootSetupFromPicker(sessionId);
@@ -373,5 +382,5 @@ if (import.meta.main) {
     if (result === "session-active-elsewhere") process.stderr.write("This Pi session is active elsewhere and cannot be opened here.\n");
     else if (result === "session-not-found") process.stderr.write("This Pi session no longer exists.\n");
   } else if (!argument) await showWorkspacePicker();
-  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--restore|--toggle-unread <session-id>|--open <session-id>]");
+  else throw new Error("Usage: piw-picker [--list [frame]|--help|--create [session-id]|--setup <session-id>|--rename <session-id>|--move-session <session-id> <up|down> [query]|--move-group <session-id> <up|down> [query]|--close <session-id>|--archive <session-id>|--restore|--toggle-unread <session-id>|--preview <session-id>|--open <session-id>]");
 }
