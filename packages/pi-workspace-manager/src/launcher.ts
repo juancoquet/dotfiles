@@ -176,7 +176,7 @@ class LocalTmux implements Tmux {
   }
 
   createPicker(session: string): string {
-    return runTmux(["new-window", "-d", "-P", "-F", "#{window_id}", "-t", session, "-n", "picker", "piw-picker"]).trim();
+    return runTmux(["new-window", "-d", "-a", "-P", "-F", "#{window_id}", "-t", session, "-n", "picker", "piw-picker"]).trim();
   }
 
   createWorkspace(input: { session: string; cwd: string; workspaceId: string; runtimeInstanceId: string; sessionFile?: string; environment: NodeJS.ProcessEnv }): string {
@@ -186,7 +186,7 @@ class LocalTmux implements Tmux {
     const command = ["env", `PIW_WORKSPACE_ID=${input.workspaceId}`, `PIW_RUNTIME_INSTANCE_ID=${input.runtimeInstanceId}`, "pi"];
     if (input.sessionFile) command.push("--session", input.sessionFile);
     const window = runTmux([
-      "new-window", "-d", "-P", "-F", "#{window_id}", "-t", input.session, "-c", input.cwd,
+      "new-window", "-d", "-a", "-P", "-F", "#{window_id}", "-t", input.session, "-c", input.cwd,
       ...windowEnvironment, "-n", `workspace-${input.workspaceId.slice(0, 8)}`, ...command,
     ]).trim();
     runTmux(["set-window-option", "-t", window, "@piw_workspace_id", input.workspaceId]);
