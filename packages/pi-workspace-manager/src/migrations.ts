@@ -54,4 +54,42 @@ export const migrations: readonly Migration[] = [
     id: 2,
     sql: `ALTER TABLE sessions ADD COLUMN last_activity_at TEXT;`,
   },
+  {
+    id: 3,
+    sql: `
+      ALTER TABLE sessions ADD COLUMN first_message TEXT;
+      ALTER TABLE sessions ADD COLUMN parent_session_file TEXT;
+      ALTER TABLE sessions ADD COLUMN parent_session_id TEXT;
+      CREATE INDEX sessions_by_parent ON sessions(parent_session_id);
+    `,
+  },
+  {
+    id: 4,
+    sql: `
+      ALTER TABLE runtime_registrations ADD COLUMN instance_id TEXT NOT NULL DEFAULT '';
+    `,
+  },
+  {
+    id: 5,
+    sql: `
+      CREATE TABLE runtime_registrations_next (
+        session_id TEXT PRIMARY KEY,
+        instance_id TEXT NOT NULL,
+        pid INTEGER NOT NULL,
+        cwd TEXT NOT NULL,
+        workspace_id TEXT,
+        tmux_location TEXT,
+        agent_state TEXT NOT NULL CHECK (agent_state IN ('idle', 'running')),
+        heartbeat_at TEXT NOT NULL
+      );
+      INSERT INTO runtime_registrations_next (session_id, instance_id, pid, cwd, workspace_id, tmux_location, agent_state, heartbeat_at)
+      SELECT rr.session_id, rr.instance_id, rr.pid, COALESCE(r.path, ''), rr.workspace_id, rr.tmux_location, rr.agent_state, rr.heartbeat_at
+      FROM runtime_registrations rr
+      LEFT JOIN sessions s ON s.id = rr.session_id
+      LEFT JOIN roots r ON r.id = s.root_id;
+      DROP TABLE runtime_registrations;
+      ALTER TABLE runtime_registrations_next RENAME TO runtime_registrations;
+      CREATE INDEX runtime_by_pid ON runtime_registrations(pid);
+    `,
+  },
 ];

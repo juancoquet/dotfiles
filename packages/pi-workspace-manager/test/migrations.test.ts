@@ -26,12 +26,13 @@ test("upgrades a version-one database once without losing session records", () =
   chmodSync(statePaths.databasePath, 0o600);
 
   const registry = WorkspaceRegistry.open({ paths: statePaths });
-  assert.equal(registry.schemaVersion(), 2);
+  assert.equal(registry.schemaVersion(), 5);
   assert.equal(registry.getSession("session")?.name, "Saved");
+  assert.equal(registry.getSession("session")?.firstMessage, null);
   registry.close();
 
   const reopened = WorkspaceRegistry.open({ paths: statePaths });
-  assert.equal(reopened.schemaVersion(), 2);
+  assert.equal(reopened.schemaVersion(), 5);
   assert.equal(reopened.listSessions().length, 1);
   reopened.close();
 });

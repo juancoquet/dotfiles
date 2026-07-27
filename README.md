@@ -246,7 +246,7 @@ credential has not been installed.
 - install `tmux`
 
 ```
-brew install tmux
+brew install tmux fzf
 ```
 
 - install tmux plugin manager

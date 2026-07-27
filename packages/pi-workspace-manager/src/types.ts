@@ -23,6 +23,10 @@ export interface PiSession {
   rootId: RootId;
   sessionFile: string;
   name: string | null;
+  firstMessage: string | null;
+  parentSessionFile: string | null;
+  parentSessionId: SessionId | null;
+  lastActivityAt: string | null;
   archived: boolean;
   unread: boolean;
   sortRank: number;
@@ -38,11 +42,20 @@ export interface ManagedWorktree {
 
 export interface RuntimeRegistration {
   sessionId: SessionId;
+  instanceId: string;
   pid: number;
+  cwd: string;
   workspaceId: string | null;
   tmuxLocation: string | null;
   agentState: "idle" | "running";
   heartbeatAt: string;
+}
+
+export type RuntimeState = "cold" | "managed-warm" | "active-elsewhere";
+
+export interface RuntimeOwnership {
+  registration: RuntimeRegistration;
+  state: Exclude<RuntimeState, "cold">;
 }
 
 export interface StatePaths {
@@ -53,4 +66,11 @@ export interface StatePaths {
 
 export interface RegistryOptions {
   paths?: StatePaths;
+}
+
+export interface RuntimeRegistryOptions {
+  staleAfterMs?: number;
+  now?: () => Date;
+  isPidRunning?: (pid: number) => boolean;
+  isTmuxLocationRunning?: (location: string) => boolean;
 }

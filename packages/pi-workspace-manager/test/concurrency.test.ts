@@ -26,7 +26,7 @@ test("separate processes preserve concurrent updates to distinct sessions", asyn
   const worker = `import { WorkspaceRegistry } from ${JSON.stringify(moduleUrl)};
     const registry = WorkspaceRegistry.open({ paths: JSON.parse(process.env.PIW_PATHS) });
     const id = process.env.PIW_SESSION;
-    registry.upsertSession({ id, rootId: 'root', sessionFile: '/sessions/' + id + '.jsonl', name: id, archived: false, unread: false, sortRank: 1 });
+    registry.upsertSession({ id, rootId: 'root', sessionFile: '/sessions/' + id + '.jsonl', name: id, firstMessage: null, parentSessionFile: null, parentSessionId: null, lastActivityAt: null, archived: false, unread: false, sortRank: 1 });
     registry.close();`;
   const environment = JSON.stringify(statePaths);
   await Promise.all(["one", "two"].map((id) => execFileAsync(process.execPath, ["--experimental-strip-types", "--input-type=module", "--eval", worker], {
