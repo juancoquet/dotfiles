@@ -4,6 +4,7 @@ import { catalogSessions } from "./catalog.ts";
 import { WorkspaceRegistry } from "./database.ts";
 import { RuntimeRegistry } from "./runtime.ts";
 import { appendReviewComment, serveReviewComments, type ReviewCommentSocket } from "./review-comments.ts";
+import { ManagedSessionReplacement } from "./session-replacement.ts";
 import type { RuntimeRegistration } from "./types.ts";
 
 const HEARTBEAT_INTERVAL_MS = 5_000;
@@ -15,6 +16,7 @@ export default function workspaceManagerExtension(pi: ExtensionAPI): void {
   let registration: RuntimeRegistration | undefined;
   let heartbeat: NodeJS.Timeout | undefined;
   let reviewSocket: ReviewCommentSocket | undefined;
+  const replacements = new ManagedSessionReplacement();
 
   async function clearRuntime(): Promise<void> {
     if (heartbeat) clearInterval(heartbeat);
@@ -74,6 +76,23 @@ export default function workspaceManagerExtension(pi: ExtensionAPI): void {
     }
     heartbeat = setInterval(() => refresh(ctx.isIdle() ? "idle" : "running"), HEARTBEAT_INTERVAL_MS);
     heartbeat.unref();
+  });
+
+  pi.on("session_before_switch", (event, ctx) => {
+    if (!process.env.PIW_WORKSPACE_ID) return;
+    if (event.reason === "resume") replacements.showResumePicker();
+    else replacements.showCreationFlow(ctx.sessionManager.getSessionId());
+    return { cancel: true };
+  });
+  pi.on("session_before_fork", async (event, ctx) => {
+    if (!process.env.PIW_WORKSPACE_ID) return;
+    try {
+      const created = await replacements.createFork(ctx.sessionManager.getSessionFile(), event.entryId, event.position);
+      if (!created) ctx.ui.notify("Could not create a managed fork; the current workspace is unchanged.", "error");
+    } catch (error) {
+      ctx.ui.notify(`Could not create a managed fork: ${error instanceof Error ? error.message : String(error)}`, "error");
+    }
+    return { cancel: true };
   });
 
   pi.on("session_info_changed", (event) => refresh(registration?.agentState ?? "idle", event.name, true));

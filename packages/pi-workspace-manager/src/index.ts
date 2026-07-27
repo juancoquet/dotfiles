@@ -9,6 +9,8 @@ export { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, list
 export type { PickerCreationDependencies, PickerDependencies, PickerListingDependencies, PickerProcess, PickerRenameDependencies, ReorderResult } from "./picker.ts"
 export { extractExcerpts, previewSessionFromPicker, renderSessionPreview } from "./preview.ts";
 export type { GitPreview, SessionPreviewDependencies } from "./preview.ts";
+export { ManagedSessionReplacement } from "./session-replacement.ts";
+export type { SessionReplacementDependencies } from "./session-replacement.ts";
 export { renameSession } from "./session-names.ts";
 export type { PiSessionNameWriter, SessionNameStore } from "./session-names.ts";
 export { createManagedWorktree, inspectManagedWorktree, listGitWorktrees, LocalGit, removeManagedWorktree } from "./worktrees.ts";
