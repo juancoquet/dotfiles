@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderWorkspacePicker, showWorkspacePicker, WorkspaceRegistry, type PickerProcess } from "../src/index.ts";
+import { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderPickerHelp, renderWorkspacePicker, showWorkspacePicker, WorkspaceRegistry, type PickerProcess } from "../src/index.ts";
 
 function paths() {
   const directory = mkdtempSync(join(tmpdir(), "piw-picker-"));
@@ -170,6 +170,15 @@ test("renames selected and archived sessions without changing manager-owned stat
   const unchanged = WorkspaceRegistry.open({ paths: statePaths });
   assert.equal(unchanged.getSession("second")?.name, "Renamed");
   unchanged.close();
+});
+
+test("renders picker help from the same actions bound in fzf", () => {
+  const help = renderPickerHelp();
+  const bindings = fzfArguments().find((argument) => argument.startsWith("--bind=")) ?? "";
+  assert.match(help, /Ctrl\+N\s+Create a workspace/);
+  assert.match(help, /Ctrl\+Alt\+X\s+Move a cold session to macOS Trash/);
+  assert.match(bindings, /ctrl-n:execute\([^)]*--create \{2}\)\+abort/);
+  assert.match(bindings, /ctrl-alt-x:execute\([^)]*--trash \{2}\)/);
 });
 
 test("shows loading while fzf reloads empty and catalog-error states without sorting", async () => {

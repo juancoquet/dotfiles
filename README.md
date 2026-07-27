@@ -26,6 +26,13 @@ refuse to overwrite a file at the destination that isn't already a symlink
 the first migration backs up existing files with a `.pre-dotfiles.<timestamp>`
 suffix before linking the managed replacements.
 
+## Pi workspaces
+
+[`piw`](docs/piw.md) manages persistent Pi conversations, tmux windows, and
+optional nvim panes. Install dependencies with `npm ci`, run `./install.sh`,
+then launch `piw` from the exact directory you want as the workspace root.
+Raw `pi` remains available unchanged.
+
 ## secrets
 
 Real API keys (Context7, Brave Search, ...) are stored encrypted in

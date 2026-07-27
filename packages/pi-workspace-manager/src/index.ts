@@ -5,7 +5,7 @@ export type { CatalogGroup, CatalogResult, RootInspector, SessionCatalogSource }
 export { WorkspaceRegistry } from "./database.ts";
 export { createNewWorkspace, launchPiw, openWorkspace } from "./launcher.ts";
 export type { LaunchDependencies, LaunchResult, OpenWorkspaceResult, Tmux } from "./launcher.ts";
-export { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listArchivedWorkspacePicker, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderLoading, renderWorkspacePicker, rerunRootSetupFromPicker, restoreArchivedSessionFromPicker, showWorkspacePicker } from "./picker.ts";
+export { createWorkspaceFromPicker, directoryPickerArguments, fzfArguments, listArchivedWorkspacePicker, listWorkspacePicker, renameSessionFromPicker, reorderFromPicker, renderLoading, renderPickerHelp, renderWorkspacePicker, rerunRootSetupFromPicker, restoreArchivedSessionFromPicker, showWorkspacePicker } from "./picker.ts";
 export type { PickerCreationDependencies, PickerDependencies, PickerListingDependencies, PickerProcess, PickerRenameDependencies, ReorderResult } from "./picker.ts"
 export { extractExcerpts, previewSessionFromPicker, renderSessionPreview } from "./preview.ts";
 export type { GitPreview, SessionPreviewDependencies } from "./preview.ts";

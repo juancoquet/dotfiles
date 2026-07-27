@@ -11,26 +11,43 @@ import { archiveSession, archiveSessionTree, closeWorkspace, trashSession } from
 import { createManagedWorktree, listGitWorktrees, removeManagedWorktree } from "./worktrees.ts";
 import type { PiSession, Repository, Root } from "./types.ts";
 
-const PRIMARY_HINTS = "Ctrl+N new  Ctrl+E rename  Ctrl+/ preview  Alt+j/k move session  Ctrl+W close  Ctrl+A archive  Ctrl+R restore  ? help  Esc close";
 const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
 const UNREAD_BELL = "󰂚";
+
+interface PickerBinding {
+  key: string;
+  action: string;
+  description: string;
+  primary?: boolean;
+}
+
+/** The picker header, fzf bindings, and help view deliberately share this source. */
+const PICKER_BINDINGS: readonly PickerBinding[] = [
+  { key: "Enter", action: "accept", description: "Open or switch to the highlighted workspace", primary: true },
+  { key: "Ctrl+N", action: "execute({command} --create {2})+abort", description: "Create a workspace", primary: true },
+  { key: "Ctrl+S", action: "execute({command} --setup {2})+abort", description: "Rerun or change root setup" },
+  { key: "Ctrl+E", action: "execute({command} --rename {2})+{refresh}", description: "Rename a session", primary: true },
+  { key: "Ctrl+U", action: "execute({command} --toggle-unread {2})+{refresh}", description: "Toggle unread" },
+  { key: "Ctrl+/", action: "toggle-preview", description: "Toggle session preview", primary: true },
+  { key: "Alt+j", action: "execute({command} --move-session {2} down {q})+{refresh}", description: "Move a session down within its group", primary: true },
+  { key: "Alt+k", action: "execute({command} --move-session {2} up {q})+{refresh}", description: "Move a session up within its group" },
+  { key: "Alt+Shift+j", action: "execute({command} --move-group {2} down {q})+{refresh}", description: "Move the highlighted group down" },
+  { key: "Alt+Shift+k", action: "execute({command} --move-group {2} up {q})+{refresh}", description: "Move the highlighted group up" },
+  { key: "Ctrl+W", action: "execute({command} --close {2})+abort", description: "Close a warm workspace", primary: true },
+  { key: "Ctrl+A", action: "execute({command} --archive {2})+{refresh}", description: "Archive a session", primary: true },
+  { key: "Ctrl+Alt+A", action: "execute({command} --archive-tree {2})+{refresh}", description: "Archive a session and descendants" },
+  { key: "Ctrl+Alt+X", action: "execute({command} --trash {2})+{refresh}", description: "Move a cold session to macOS Trash" },
+  { key: "Ctrl+X", action: "execute({command} --cleanup-worktree {2})+{refresh}", description: "Remove a clean, merged managed worktree" },
+  { key: "Ctrl+R", action: "execute({command} --restore)+{refresh}", description: "Restore one archived session", primary: true },
+];
+
+const PRIMARY_HINTS = `${PICKER_BINDINGS.filter((binding) => binding.primary).map((binding) => `${binding.key} ${binding.description.toLowerCase()}`).join("  ")}  ? help  Esc close`;
 const HELP = [
   "Pi workspaces",
   "",
-  "?          Show this help",
-  "Ctrl+S     Rerun or change root setup",
-  "Ctrl+E     Rename a session",
-  "Ctrl+U     Toggle unread",
-  "Ctrl+/     Toggle session preview",
-  "Alt+j/k   Move a session down/up within its group",
-  "Alt+Shift+j/k  Move the highlighted group down/up",
-  "Ctrl+W     Close a warm workspace",
-  "Ctrl+A     Archive a session",
-  "Ctrl+Alt+A Archive a session and descendants",
-  "Ctrl+Alt+X Move a cold session to macOS Trash",
-  "Ctrl+X     Remove a clean, merged managed worktree",
-  "Ctrl+R     Restore one archived session",
-  "Esc        Return to the picker",
+  ...PICKER_BINDINGS.map((binding) => `${binding.key.padEnd(13)}${binding.description}`),
+  "?            Show this help",
+  "Esc          Return to the picker",
   "",
   "Press ? or Esc to return to the picker.",
 ].join("\n");
@@ -128,6 +145,9 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
   const listing = `${command} --list $(( $(date +%s%N) / 100000000 ))`;
   const refresh = `reload(${listing})`;
   const animate = "execute-silent(while kill -0 $PPID 2>/dev/null; do sleep 0.1; tmux send-keys -t \"$TMUX_PANE\" C-r 2>/dev/null || exit; done)";
+  const bindings = PICKER_BINDINGS
+    .filter((binding) => binding.action !== "accept")
+    .map((binding) => `${binding.key.toLowerCase().replaceAll("+", "-")}:${binding.action.replaceAll("{command}", command).replaceAll("{refresh}", refresh)}`);
   const previewWindow = terminalColumns >= 110 ? "right:50%:wrap" : "right:50%:wrap:hidden";
   return [
     "--no-sort",
@@ -139,7 +159,7 @@ export function fzfArguments(command = "~/.local/bin/piw-picker", terminalColumn
     "--prompt=Workspace> ",
     `--preview=${command} --preview {2}`,
     `--preview-window=${previewWindow}`,
-    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),ctrl-/:toggle-preview,ctrl-n:execute(${command} --create {2})+abort,ctrl-s:execute(${command} --setup {2})+abort,ctrl-e:execute(${command} --rename {2})+${refresh},ctrl-u:execute(${command} --toggle-unread {2})+${refresh},alt-j:execute(${command} --move-session {2} down {q})+${refresh},alt-k:execute(${command} --move-session {2} up {q})+${refresh},alt-shift-j:execute(${command} --move-group {2} down {q})+${refresh},alt-shift-k:execute(${command} --move-group {2} up {q})+${refresh},ctrl-w:execute(${command} --close {2})+abort,ctrl-a:execute(${command} --archive {2})+${refresh},ctrl-alt-a:execute(${command} --archive-tree {2})+${refresh},ctrl-alt-x:execute(${command} --trash {2})+${refresh},ctrl-x:execute(${command} --cleanup-worktree {2})+${refresh},ctrl-r:execute(${command} --restore)+${refresh}`,
+    `--bind=start:${refresh}+enable-search+${animate},?:execute(${command} --help),${bindings.join(",")}`,
     "--track-current",
     "--select-1",
   ];
@@ -351,8 +371,12 @@ function defaultCreationDependencies(): PickerCreationDependencies {
   };
 }
 
+export function renderPickerHelp(): string {
+  return HELP;
+}
+
 function showHelp(): void {
-  process.stdout.write(`${HELP}\n`);
+  process.stdout.write(`${renderPickerHelp()}\n`);
   if (process.stdin.isTTY) {
     process.stdin.setRawMode(true);
     process.stdin.resume();
