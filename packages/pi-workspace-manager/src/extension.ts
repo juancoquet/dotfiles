@@ -120,7 +120,7 @@ function updateWindowLabel(registration: RuntimeRegistration, name: string | nul
 function currentTmuxLocation(): string | null {
   if (!process.env.TMUX) return null;
   try {
-    const location = execFileSync("tmux", ["display-message", "-p", "#{session_name}:#{pane_id}"], {
+    const location = execFileSync("tmux", ["display-message", "-p", "#{session_name}:#{window_id}"], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"], timeout: 500,
     }).trim();

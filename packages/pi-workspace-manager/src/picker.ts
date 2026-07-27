@@ -24,7 +24,7 @@ interface PickerBinding {
 /** The picker header, fzf bindings, and help view deliberately share this source. */
 const PICKER_BINDINGS: readonly PickerBinding[] = [
   { key: "Enter", action: "accept", description: "Open or switch to the highlighted workspace", primary: true },
-  { key: "Ctrl+N", action: "execute({command} --create {2})+abort", description: "Create a workspace", primary: true },
+  { key: "Ctrl+O", action: "execute({command} --create {2})+abort", description: "Create a workspace", primary: true },
   { key: "Ctrl+S", action: "execute({command} --setup {2})+abort", description: "Rerun or change root setup" },
   { key: "Ctrl+E", action: "execute({command} --rename {2})+{refresh}", description: "Rename a session", primary: true },
   { key: "Ctrl+U", action: "execute({command} --toggle-unread {2})+{refresh}", description: "Toggle unread" },

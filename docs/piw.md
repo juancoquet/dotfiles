@@ -41,7 +41,7 @@ picker keys are:
 | Key | Action |
 | --- | --- |
 | `Enter` | Open or switch to the selected workspace |
-| `Ctrl+N` | Create a workspace in the current root, another directory, an existing worktree, or a new managed worktree |
+| `Ctrl+O` | Create a workspace in the current root, another directory, an existing worktree, or a new managed worktree |
 | `Ctrl+E` | Rename a session |
 | `Ctrl+U` | Toggle unread |
 | `Ctrl+/` | Toggle the preview |

@@ -195,7 +195,9 @@ class LocalTmux implements Tmux {
   }
 
   selectWindow(target: string): void {
-    runTmux(["select-window", "-t", target]);
+    // Older runtime registrations identify the owning pane; select-pane also
+    // activates its containing window. New registrations identify the window.
+    runTmux(target.includes(":%") ? ["select-pane", "-t", target] : ["select-window", "-t", target]);
   }
 
   attach(session: string, insideTmux: boolean): void {

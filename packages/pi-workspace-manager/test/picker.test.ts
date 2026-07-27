@@ -175,9 +175,9 @@ test("renames selected and archived sessions without changing manager-owned stat
 test("renders picker help from the same actions bound in fzf", () => {
   const help = renderPickerHelp();
   const bindings = fzfArguments().find((argument) => argument.startsWith("--bind=")) ?? "";
-  assert.match(help, /Ctrl\+N\s+Create a workspace/);
+  assert.match(help, /Ctrl\+O\s+Create a workspace/);
   assert.match(help, /Ctrl\+Alt\+X\s+Move a cold session to macOS Trash/);
-  assert.match(bindings, /ctrl-n:execute\([^)]*--create \{2}\)\+abort/);
+  assert.match(bindings, /ctrl-o:execute\([^)]*--create \{2}\)\+abort/);
   assert.match(bindings, /ctrl-alt-x:execute\([^)]*--trash \{2}\)/);
 });
 
@@ -196,7 +196,7 @@ test("configures an interactive unsorted picker and renders empty and catalog-er
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-a:execute(~/.local/bin/piw-picker --archive-tree {2})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-alt-x:execute(~/.local/bin/piw-picker --trash {2})+reload(")));
   assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-x:execute(~/.local/bin/piw-picker --cleanup-worktree {2})+reload(")));
-  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-n:execute(~/.local/bin/piw-picker --create {2})+abort")));
+  assert.ok(calls[0]!.arguments_.some((argument) => argument.includes("ctrl-o:execute(~/.local/bin/piw-picker --create {2})+abort")));
   assert.deepEqual(directoryPickerArguments("/repo/src"), [
     "--disabled", "--print-query", "--query=/repo/src", "--prompt=Directory> ",
     "--header=Edit the exact directory path, then press Enter. Esc cancels.", "--bind=enter:accept",

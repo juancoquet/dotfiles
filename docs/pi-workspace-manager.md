@@ -188,7 +188,7 @@ The picker surface displays only frequent bindings. `?` opens the complete keybi
 ### Primary actions
 
 - `Enter`: open or switch to the highlighted workspace.
-- `Ctrl+N`: create a workspace.
+- `Ctrl+O`: create a workspace.
 - `Ctrl+W`: close the warm workspace while retaining its session.
 - `Ctrl+A`: archive the selected session.
 - `Ctrl+R`: reveal archived sessions and restore one.
@@ -217,7 +217,7 @@ There is no force-open path in the first version.
 
 ## Creating workspaces
 
-`Ctrl+N` opens one creation flow rather than separate commands for directories and worktrees. It can create a fresh Pi session in:
+`Ctrl+O` opens one creation flow rather than separate commands for directories and worktrees. It can create a fresh Pi session in:
 
 - the highlighted or current exact root
 - another selected directory
