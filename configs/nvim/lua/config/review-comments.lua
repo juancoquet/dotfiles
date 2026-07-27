@@ -7,7 +7,7 @@ local function socket_path()
   end
   local runtime = vim.env.XDG_RUNTIME_DIR
   if not runtime or runtime == "" then
-    runtime = string.format("/tmp/pi-workspaces-%s", vim.uv.os_getuid())
+    runtime = string.format("/tmp/piw-%s", vim.uv.os_getuid())
   end
   return runtime .. "/runtime/workspace-" .. workspace .. ".sock"
 end

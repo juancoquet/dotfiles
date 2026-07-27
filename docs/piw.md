@@ -86,8 +86,8 @@ to be merged. It never deletes sessions as part of worktree cleanup.
 
 Manager metadata is stored in `~/.local/state/pi-workspaces/state.db`.
 Runtime registrations and sockets use a private per-account runtime directory
-(`$XDG_RUNTIME_DIR/pi-workspaces-<uid>/runtime` when `XDG_RUNTIME_DIR` is set,
-or the system temporary directory otherwise). Pi's JSONL session history stays
+(`$XDG_RUNTIME_DIR/runtime` when `XDG_RUNTIME_DIR` is set, or
+`/tmp/piw-<uid>/runtime` otherwise). Pi's JSONL session history stays
 where Pi owns it.
 
 ## Archive, Trash, and recovery
