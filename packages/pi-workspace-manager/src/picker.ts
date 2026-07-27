@@ -59,6 +59,7 @@ export interface PickerProcess {
 export interface PickerDependencies {
   process: PickerProcess;
   open(sessionId: string): Promise<unknown>;
+  list?(): Promise<string>;
 }
 
 export interface PickerListingDependencies {
@@ -90,9 +91,9 @@ interface Group {
   sessions: Array<{ session: PiSession; root: Root }>;
 }
 
-/** Opens fzf immediately, then reloads its catalog so loading is explicit. */
+/** Catalogs before opening fzf so the popup is never blank while its reload starts. */
 export async function showWorkspacePicker(dependencies: PickerDependencies = defaultDependencies()): Promise<void> {
-  const selected = dependencies.process.run(renderLoading(), fzfArguments());
+  const selected = dependencies.process.run(await dependencies.list?.() ?? renderLoading(), fzfArguments());
   const sessionId = selected?.trim().split("\t")[1];
   if (sessionId) await dependencies.open(sessionId);
 }
@@ -320,6 +321,7 @@ function defaultDependencies(): PickerDependencies {
       },
     },
     open: openWorkspace,
+    list: () => listWorkspacePicker(),
   };
 }
 
