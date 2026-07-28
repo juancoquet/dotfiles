@@ -1,6 +1,5 @@
 .DS_Store
 node_modules/
-docs/
 .pi-subagents/
 
 # tmux plugins are installed locally via tpm, not vendored

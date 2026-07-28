@@ -1,37 +1,10 @@
 # Pi Workspace Manager
-current issue: none
 
 ## Overview
 
 Pi is effective as a terminal-native coding agent, but working across several conversations, repositories, and worktrees lacks the workspace management available in desktop agent applications. This project adds that missing layer without replacing Pi or embedding a terminal emulator inside its TUI.
 
 The workflow uses tmux as the compositor, Pi as the agent interface, nvim as the editor and diff viewer, and fzf as the workspace picker. Switching a Pi session switches the entire visible workspace: conversation, directory, environment, editor process, and pane layout. Background agents and editors remain alive, so returning to a workspace restores it exactly as it was left.
-
-Implementation work is tracked in [`docs/issues/todo/`](issues/todo/).
-
-## Issue workflow
-
-Keep the `current issue: <number>` line at the top of this document up to date. It identifies the issue to implement next or the one currently in progress. Use the issue's three-digit filename prefix. Increment it to the next numbered todo issue after completing the current issue. Use `current issue: none` only after every issue is complete.
-
-Before implementing an issue, read this document in full and treat its terminology, constraints, and non-goals as requirements. Confirm that `current issue` matches that issue's number, then change the issue's line from:
-
-```text
-status: todo
-```
-
-to:
-
-```text
-status: in-progress
-```
-
-Keep the issue in `docs/issues/todo/` while work is underway. When every acceptance criterion passes, change the line to:
-
-```text
-status: complete
-```
-
-Then move the issue file to `docs/issues/done/`, increment `current issue` to the next numbered todo issue, commit the completed ticket, and push the commit. After completing the final issue, set `current issue: none`. Do not mark an issue complete or move it while any acceptance criterion remains unmet.
 
 ## Goals
 
