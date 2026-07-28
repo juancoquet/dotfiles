@@ -62,7 +62,8 @@ remove_managed_link() {
 
 link configs/ghostty          "$HOME/.config/ghostty"
 link configs/nvim             "$HOME/.config/nvim"
-link configs/pi/extensions/review-comments.ts "$HOME/.pi/agent/extensions/review-comments.ts"
+remove_managed_link "$HOME/.pi/agent/extensions/review-comments.ts" "$DOTFILES_DIR/configs/pi/extensions/review-comments.ts"
+link configs/pi/extensions/code-comments.ts "$HOME/.pi/agent/extensions/code-comments.ts"
 
 # opencode manages its own runtime state (node_modules, tui.json, ...)
 # inside ~/.config/opencode, so only the actual config pieces are linked,

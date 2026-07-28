@@ -3,11 +3,11 @@ local function user_id()
 end
 
 local function review_socket()
-  local pane = vim.env.PI_REVIEW_OWNER_PANE
-  local tmux_socket = vim.env.PI_REVIEW_TMUX_SOCKET
+  local pane = vim.env.PI_CODE_OWNER_PANE
+  local tmux_socket = vim.env.PI_CODE_TMUX_SOCKET
   if pane and pane:match("^%%%d+$") and tmux_socket then
     return string.format(
-      "%s/.local/state/pi-review/%s-%s-%s.sock",
+      "%s/.local/state/pi-comments/%s-%s-%s.sock",
       vim.env.HOME,
       vim.fn.sha256(tmux_socket):sub(1, 16),
       user_id(),
@@ -17,12 +17,12 @@ local function review_socket()
 
   local tmux = vim.env.TMUX
   if not tmux then
-    return nil, "Review comments require tmux"
+    return nil, "Code comments require tmux"
   end
 
   local tmux_hash = vim.fn.sha256(tmux:match("^[^,]+")):sub(1, 16)
   local pattern = string.format(
-    "%s/.local/state/pi-review/%s-%s-*.sock",
+    "%s/.local/state/pi-comments/%s-%s-*.sock",
     vim.env.HOME,
     tmux_hash,
     user_id()
@@ -32,9 +32,9 @@ local function review_socket()
     return sockets[1]
   end
   if #sockets > 1 then
-    return nil, "Multiple Pi review sessions are active; open Neovim from the target Pi pane"
+    return nil, "Multiple Pi code-comment sessions are active; open Neovim from the target Pi pane"
   end
-  return nil, "No active Pi review session is available"
+  return nil, "No active Pi code-comment session is available"
 end
 
 local function relative_path(path)
@@ -72,14 +72,16 @@ local function selection()
   local diff = diff_metadata(bufnr)
   local path = diff and diff.path or vim.api.nvim_buf_get_name(bufnr)
   if not path or path == "" then
-    return nil, "Review comments require a file-backed buffer"
+    return nil, "Code comments require a file-backed buffer"
   end
 
   local start_line = vim.api.nvim_win_get_cursor(0)[1]
   local end_line = start_line
-  if vim.fn.mode():find("[vV]") then
-    start_line = vim.fn.line("'<")
-    end_line = vim.fn.line("'>")
+  local mode = vim.fn.mode()
+  if mode == "v" or mode == "V" or mode == "\22" then
+    local anchor_line = vim.fn.getpos("v")[2]
+    start_line = math.min(anchor_line, end_line)
+    end_line = math.max(anchor_line, end_line)
   end
 
   return {
@@ -92,10 +94,19 @@ local function selection()
   }
 end
 
+local function report(message, level)
+  if level == vim.log.levels.ERROR then
+    vim.fn.setreg("+", message)
+    vim.api.nvim_err_writeln(message)
+    message = message .. " (copied to clipboard)"
+  end
+  vim.notify(message, level)
+end
+
 local function submit(comment, win)
   local text = table.concat(vim.api.nvim_buf_get_lines(win.buf, 0, -1, false), "\n")
   if text:match("^%s*$") then
-    vim.notify("Review comment cannot be empty", vim.log.levels.WARN)
+    vim.notify("Code comment cannot be empty", vim.log.levels.WARN)
     return
   end
 
@@ -121,13 +132,13 @@ local function submit(comment, win)
     client:close()
     if message then
       vim.schedule(function()
-        vim.notify(message, level)
+        report(message, level)
       end)
     end
   end
 
   timer:start(1500, 0, function()
-    done("Pi did not accept the review comment", vim.log.levels.ERROR)
+    done("Pi did not accept the code comment", vim.log.levels.ERROR)
   end)
   client:connect(socket_path, function(error)
     if error then
@@ -137,11 +148,11 @@ local function submit(comment, win)
 
     client:read_start(function(read_error, data)
       if read_error then
-        done("Pi rejected the review comment: " .. read_error, vim.log.levels.ERROR)
+        done("Pi rejected the code comment: " .. read_error, vim.log.levels.ERROR)
         return
       end
       if not data then
-        done("Pi closed the review-comment connection", vim.log.levels.ERROR)
+        done("Pi closed the code-comment connection", vim.log.levels.ERROR)
         return
       end
 
@@ -152,9 +163,11 @@ local function submit(comment, win)
       end
       local ok, reply = pcall(vim.json.decode, line)
       if ok and reply.ok == true then
-        done("Review comment added to Pi's draft", vim.log.levels.INFO)
+        done("Code comment added to Pi's draft", vim.log.levels.INFO)
+      elseif ok and type(reply.error) == "string" then
+        done("Pi rejected the code comment: " .. reply.error, vim.log.levels.ERROR)
       else
-        done("Pi rejected the review comment", vim.log.levels.ERROR)
+        done("Pi rejected the code comment", vim.log.levels.ERROR)
       end
     end)
     client:write(vim.json.encode(comment) .. "\n")
@@ -167,6 +180,22 @@ local function leave_nvim(direction)
   vim.fn.system({ "tmux", "select-pane", direction })
 end
 
+local function comment_window_options()
+  local height = 8
+  local row = vim.fn.winline()
+  local below = vim.api.nvim_win_get_height(0) - row
+  local above = below < height + 2
+
+  return {
+    relative = "cursor",
+    anchor = above and "SW" or "NW",
+    row = above and -1 or 1,
+    col = 0,
+    width = math.min(72, math.floor(vim.api.nvim_win_get_width(0) * 0.6)),
+    height = height,
+  }
+end
+
 local function open_comment()
   local comment, error = selection()
   if not comment then
@@ -174,22 +203,20 @@ local function open_comment()
     return
   end
 
-  local win = Snacks.win({
-    title = " Review comment ",
+  local win = Snacks.win(vim.tbl_extend("force", {
+    title = " Code comment ",
     border = "rounded",
-    width = 0.6,
-    height = 0.35,
     enter = true,
     scratch_ft = "markdown",
     bo = { bufhidden = "wipe", modifiable = true },
-  })
+  }, comment_window_options()))
 
   vim.keymap.set("n", "<CR>", function()
     submit(comment, win)
-  end, { buffer = win.buf, desc = "Submit review comment" })
+  end, { buffer = win.buf, desc = "Submit code comment" })
   vim.keymap.set("i", "<D-CR>", function()
     submit(comment, win)
-  end, { buffer = win.buf, desc = "Submit review comment" })
+  end, { buffer = win.buf, desc = "Submit code comment" })
   vim.keymap.set({ "n", "i" }, "<C-h>", function()
     leave_nvim("-L")
   end, { buffer = win.buf, desc = "Focus left tmux pane" })
@@ -198,13 +225,13 @@ local function open_comment()
   end, { buffer = win.buf, desc = "Focus right tmux pane" })
   vim.keymap.set("n", "q", function()
     win:close()
-  end, { buffer = win.buf, desc = "Cancel review comment" })
+  end, { buffer = win.buf, desc = "Cancel code comment" })
   vim.cmd.startinsert()
 end
 
 return {
   "folke/snacks.nvim",
   keys = {
-    { "<leader>lc", open_comment, mode = { "n", "v" }, desc = "Add review comment to Pi" },
+    { "<leader>lc", open_comment, mode = { "n", "v" }, desc = "Add code comment to Pi" },
   },
 }

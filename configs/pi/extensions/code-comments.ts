@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createConnection, createServer, type Server, type Socket } from "node:net";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
-type ReviewComment = {
+type CodeComment = {
   version: 1;
   path: string;
   startLine: number;
@@ -16,10 +16,10 @@ type ReviewComment = {
 };
 
 const MAX_REQUEST_BYTES = 64 * 1024;
-const HEADING = "## Review comments";
+const HEADING = "## Code comments";
 
 function socketDirectory(): string {
-  return join(homedir(), ".local", "state", "pi-review");
+  return join(homedir(), ".local", "state", "pi-comments");
 }
 
 function tmuxSocket(): string | undefined {
@@ -35,40 +35,38 @@ function socketPath(): string | undefined {
   return join(socketDirectory(), `${serverId}-${process.getuid()}-${pane.slice(1)}.sock`);
 }
 
-function parseComment(line: string): ReviewComment | undefined {
-  if (Buffer.byteLength(line) > MAX_REQUEST_BYTES) return undefined;
+function parseComment(line: string): { comment?: CodeComment; error?: string } {
+  if (Buffer.byteLength(line) > MAX_REQUEST_BYTES) return { error: "Code comment is too large" };
 
   let value: unknown;
   try {
     value = JSON.parse(line);
   } catch {
-    return undefined;
+    return { error: "Code comment is not valid JSON" };
   }
 
-  if (!value || typeof value !== "object") return undefined;
+  if (!value || typeof value !== "object") return { error: "Code comment must be an object" };
   const comment = value as Record<string, unknown>;
-  if (
-    comment.version !== 1 ||
-    typeof comment.path !== "string" ||
-    !comment.path ||
-    typeof comment.startLine !== "number" ||
-    !Number.isSafeInteger(comment.startLine) ||
-    comment.startLine < 1 ||
-    typeof comment.endLine !== "number" ||
-    !Number.isSafeInteger(comment.endLine) ||
-    comment.endLine < comment.startLine ||
-    typeof comment.selectedContent !== "string" ||
-    typeof comment.comment !== "string" ||
-    !comment.comment.trim() ||
-    (comment.side !== undefined && comment.side !== "old" && comment.side !== "new")
-  ) {
-    return undefined;
+  if (comment.version !== 1) return { error: "Code comment has an unsupported version" };
+  if (typeof comment.path !== "string" || !comment.path) return { error: "Code comment has no path" };
+  if (!Number.isSafeInteger(comment.startLine) || (comment.startLine as number) < 1) {
+    return { error: "Code comment has an invalid start line" };
+  }
+  if (!Number.isSafeInteger(comment.endLine) || (comment.endLine as number) < (comment.startLine as number)) {
+    return { error: "Code comment has an invalid end line" };
+  }
+  if (typeof comment.selectedContent !== "string") return { error: "Code comment has invalid selected content" };
+  if (typeof comment.comment !== "string" || !comment.comment.trim()) {
+    return { error: "Code comment has no text" };
+  }
+  if (comment.side !== undefined && comment.side !== "old" && comment.side !== "new") {
+    return { error: "Code comment has an invalid diff side" };
   }
 
-  return comment as ReviewComment;
+  return { comment: comment as CodeComment };
 }
 
-function renderComment(comment: ReviewComment): string {
+function renderComment(comment: CodeComment): string {
   const range = comment.startLine === comment.endLine
     ? `${comment.path}:${comment.startLine}`
     : `${comment.path}:${comment.startLine}-${comment.endLine}`;
@@ -80,7 +78,7 @@ function renderComment(comment: ReviewComment): string {
   return `- **${range}**${side}\n\n  ${comment.comment}${selected}`;
 }
 
-function appendComment(ctx: ExtensionContext, comment: ReviewComment): void {
+function appendComment(ctx: ExtensionContext, comment: CodeComment): void {
   const draft = ctx.ui.getEditorText();
   const entry = renderComment(comment);
   const sectionStart = draft.indexOf(HEADING);
@@ -97,7 +95,7 @@ function appendComment(ctx: ExtensionContext, comment: ReviewComment): void {
   }
 
   ctx.ui.setEditorText(text);
-  ctx.ui.notify(`Review comment added: ${comment.path}:${comment.startLine}`, "info");
+  ctx.ui.notify(`Code comment added: ${comment.path}:${comment.startLine}`, "info");
 }
 
 async function removeStaleSocket(path: string): Promise<void> {
@@ -112,7 +110,7 @@ async function removeStaleSocket(path: string): Promise<void> {
       else reject(error);
     });
   });
-  if (active) throw new Error("A Pi process already owns this review-comment socket");
+  if (active) throw new Error("A Pi process already owns this code-comment socket");
   await rm(path, { force: true });
 }
 
@@ -139,19 +137,19 @@ async function startServer(
       input += chunk;
       if (Buffer.byteLength(input) > MAX_REQUEST_BYTES) {
         handled = true;
-        socket.end('{"ok":false,"error":"Review comment is too large"}\n');
+        socket.end('{"ok":false,"error":"Code comment is too large"}\n');
         return;
       }
       if (!input.includes("\n")) return;
 
       handled = true;
-      const comment = parseComment(input.slice(0, input.indexOf("\n")));
-      if (!comment || ctx.mode !== "tui") {
-        socket.end('{"ok":false,"error":"Review comments require an interactive Pi session"}\n');
+      const parsed = parseComment(input.slice(0, input.indexOf("\n")));
+      if (!parsed.comment) {
+        socket.end(`${JSON.stringify({ ok: false, error: parsed.error })}\n`);
         return;
       }
 
-      appendComment(ctx, comment);
+      appendComment(ctx, parsed.comment);
       socket.end('{"ok":true}\n');
     });
   });
@@ -178,7 +176,7 @@ export default function (pi: ExtensionAPI) {
       server = resource?.server;
       path = resource?.path;
     } catch (error) {
-      ctx.ui.notify(`Review comments unavailable: ${String(error)}`, "error");
+      ctx.ui.notify(`Code comments unavailable: ${String(error)}`, "error");
     }
   });
 
