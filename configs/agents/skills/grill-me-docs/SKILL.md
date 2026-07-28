@@ -5,3 +5,5 @@ disable-model-invocation: true
 ---
 
 Run a `/grill-me` session, using the `/domain-modeling` skill.
+
+Ask only material things for which you need my judgement, not minutiae.
