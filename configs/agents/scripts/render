@@ -39,7 +39,8 @@ mkdir -p \
 	"$OUTPUT/codex/agents" \
 	"$OUTPUT/cursor/agents" \
 	"$OUTPUT/cursor/rules" \
-	"$OUTPUT/opencode/agent"
+	"$OUTPUT/opencode/agent" \
+	"$OUTPUT/pi/agents"
 
 "$PYTHON" "$ROOT/scripts/render-mcp" "$ROOT" "$OUTPUT" "$CONTEXT7_COMMAND"
 
@@ -85,6 +86,20 @@ readonly: true
 
 EOF
 cat "$BODY" >>"$OUTPUT/cursor/agents/branch-reviewer.md"
+
+cat >"$OUTPUT/pi/agents/branch-reviewer.md" <<'EOF'
+---
+name: branch-reviewer
+description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
+tools: read, grep, find, ls, bash
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: true
+acceptanceRole: read-only
+---
+
+EOF
+cat "$BODY" >>"$OUTPUT/pi/agents/branch-reviewer.md"
 
 cat >"$OUTPUT/codex/agents/branch-reviewer.toml" <<'EOF'
 name = "branch-reviewer"

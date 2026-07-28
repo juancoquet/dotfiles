@@ -33,6 +33,7 @@ expected=(
 	"cursor/rules/global-agent-instructions.mdc"
 	"opencode/agent/branch-reviewer.md"
 	"opencode/opencode.json"
+	"pi/agents/branch-reviewer.md"
 )
 
 for file in "${expected[@]}"; do
@@ -133,6 +134,7 @@ PY
 grep -q 'Return only a JSON array' "$OUTPUT/claude/agents/branch-reviewer.md"
 grep -q 'do not assume that the repository defines a custom review skill' \
 	"$OUTPUT/opencode/agent/branch-reviewer.md"
+grep -q '^acceptanceRole: read-only$' "$OUTPUT/pi/agents/branch-reviewer.md"
 
 if [ -f "$HOME/.config/dotfiles/secrets.env" ] && \
 	grep -q '^CONTEXT7_API_KEY=' "$HOME/.config/dotfiles/secrets.env"; then

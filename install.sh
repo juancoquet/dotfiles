@@ -62,6 +62,7 @@ remove_managed_link() {
 
 link configs/ghostty          "$HOME/.config/ghostty"
 link configs/nvim             "$HOME/.config/nvim"
+link configs/pi/extensions/review-comments.ts "$HOME/.pi/agent/extensions/review-comments.ts"
 
 # opencode manages its own runtime state (node_modules, tui.json, ...)
 # inside ~/.config/opencode, so only the actual config pieces are linked,
@@ -88,7 +89,9 @@ ensure_runtime_dir "$HOME/.codex/agents"
 ensure_runtime_dir "$HOME/.cursor/agents"
 ensure_runtime_dir "$HOME/.cursor/rules"
 ensure_runtime_dir "$HOME/.config/opencode/agent"
+ensure_runtime_dir "$HOME/.pi/agent/agents"
 
+link_managed "$GENERATED_AGENTS/pi/agents/branch-reviewer.md" "$HOME/.pi/agent/agents/branch-reviewer.md"
 link_managed "$GENERATED_AGENTS/claude/agents/branch-reviewer.md" "$HOME/.claude/agents/branch-reviewer.md"
 link_managed "$GENERATED_AGENTS/codex/agents/branch-reviewer.toml" "$HOME/.codex/agents/branch-reviewer.toml"
 link_managed "$GENERATED_AGENTS/cursor/agents/branch-reviewer.md" "$HOME/.cursor/agents/branch-reviewer.md"
