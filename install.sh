@@ -64,6 +64,8 @@ link configs/ghostty          "$HOME/.config/ghostty"
 link configs/nvim             "$HOME/.config/nvim"
 remove_managed_link "$HOME/.pi/agent/extensions/review-comments.ts" "$DOTFILES_DIR/configs/pi/extensions/review-comments.ts"
 link configs/pi/extensions/code-comments.ts "$HOME/.pi/agent/extensions/code-comments.ts"
+link configs/pi/extensions/notify-on-settled.ts "$HOME/.pi/agent/extensions/notify-on-settled.ts"
+link configs/pi/extensions/factorio-research-complete.aiff "$HOME/Library/Sounds/factorio-research-complete.aiff"
 
 # opencode manages its own runtime state (node_modules, tui.json, ...)
 # inside ~/.config/opencode, so only the actual config pieces are linked,

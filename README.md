@@ -183,6 +183,19 @@ brew install opencode
 
 ### agent harnesses
 
+#### pi
+
+Install the notification dependency:
+
+```bash
+brew install terminal-notifier
+```
+
+`./install.sh` links Pi extensions into `~/.pi/agent/extensions/` and the
+notification sound into `~/Library/Sounds/`. The notification extension uses
+`factorio-research-complete.aiff`, sourced from
+[Factorio Research Complete](https://www.youtube.com/watch?v=DfUvUEUPNnc).
+
 Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
 `configs/agents/`:
 
