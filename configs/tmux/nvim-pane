@@ -1,0 +1,54 @@
+#!/bin/sh
+set -eu
+
+side=$1
+current=$2
+window=$(tmux display-message -p -t "$current" '#{window_id}')
+target=$(tmux list-panes -t "$window" -F '#{pane_id} #{pane_current_command}' \
+  | awk '$2 == "nvim" { print $1; exit }')
+
+if [ -z "$target" ]; then
+  path=$(tmux display-message -p -t "$current" '#{pane_current_path}')
+  socket=$(tmux display-message -p -t "$current" '#{socket_path}')
+  if [ "$side" = left ]; then
+    before=-b
+  else
+    before=
+  fi
+  tmux split-window -t "$current" -h $before -p 50 -c "$path" \
+    -e PI_CODE_OWNER_PANE="$current" \
+    -e PI_CODE_TMUX_SOCKET="$socket" \
+    'if [ -f .venv/bin/activate ]; then . .venv/bin/activate; fi; exec nvim'
+  exit
+fi
+
+zoomed=$(tmux display-message -p -t "$current" '#{window_zoomed_flag}')
+if [ "$zoomed" = 1 ]; then
+  tmux resize-pane -t "$current" -Z
+fi
+
+edge=$(tmux list-panes -t "$window" -F '#{pane_id} #{pane_left}' \
+  | awk -v side="$side" '
+      NR == 1 { pane = $1; position = $2 }
+      side == "left" && $2 < position { pane = $1; position = $2 }
+      side == "right" && $2 > position { pane = $1; position = $2 }
+      END { print pane }
+    ')
+
+if [ "$target" = "$edge" ]; then
+  if [ "$zoomed" = 1 ]; then
+    tmux select-pane -t "$target"
+  else
+    other=$(tmux list-panes -t "$window" -F '#{pane_id} #{pane_left}' \
+      | awk -v target="$target" '$1 != target { print $1, $2 }' \
+      | sort -nk2 | head -1 | cut -d' ' -f1)
+    tmux select-pane -t "$other"
+    tmux resize-pane -t "$other" -Z
+  fi
+  exit
+fi
+
+width=$(tmux display-message -p -t "$target" '#{pane_width}')
+tmux swap-pane -d -s "$target" -t "$edge"
+tmux resize-pane -t "$target" -x "$width"
+tmux select-pane -t "$target"
