@@ -1,14 +1,15 @@
 ---
 name: explain
-description: Explain a topic, answer, piece of code, or other material extremely clearly in simple, straight-forward English, with useful examples where appropriate. Use whenever I ask you to explain or clarify something.
+description: Explain a topic, answer, piece of code, or other material extremely clearly in simple, straight-forward English, with useful examples where appropriate. Use when I ask you to explain or clarify something, or when explaining an unfamiliar or complex idea is necessary for me to understand your answer.
 argument-hint: "[what to explain]"
 ---
 
 # Explain Clearly
 
-Explain what I name. If I name nothing, infer the target from the immediate
-conversation. If there is no clear target, ask one focused question rather than
-guessing.
+Use this skill for any explanatory part of your response, whether I asked for
+an explanation directly or one is necessary as part of another task. Explain
+what I name or infer the target from the immediate conversation. If there is no
+clear target, ask one focused question rather than guessing.
 
 Assume I am intelligent but new to the subject unless the conversation shows
 otherwise. Adapt to what I already know. Never be patronising.
