@@ -209,6 +209,7 @@ local function open_comment()
     enter = true,
     scratch_ft = "markdown",
     bo = { bufhidden = "wipe", modifiable = true },
+    wo = { wrap = true, linebreak = true, breakindent = true },
   }, comment_window_options()))
 
   vim.keymap.set("n", "<CR>", function()
