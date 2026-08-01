@@ -1,7 +1,6 @@
 ---
 name: explain
-description: Explain a topic, answer, piece of code, or other material extremely clearly in simple, straight-forward English, with useful examples where appropriate. Invoke explicitly when I ask for an explanation.
-disable-model-invocation: true
+description: Explain a topic, answer, piece of code, or other material extremely clearly in simple, straight-forward English, with useful examples where appropriate. Use whenever I ask you to explain or clarify something.
 argument-hint: "[what to explain]"
 ---
 
