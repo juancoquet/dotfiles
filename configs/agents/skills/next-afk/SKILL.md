@@ -112,10 +112,11 @@ condition", "touches auth"). This makes the filter's judgement auditable. Write
 
 ### Recommendation
 
-Name exactly one item to pick up. In a short paragraph, justify it against the
+Name exactly one item to work. In a short paragraph, justify it against the
 autonomy bar — why its done condition is unambiguous, how an agent would verify
 it, and why its blast radius is small — then the ranking evidence that put it
-first.
+first. If the item belongs to a tracker-owned workflow such as `wayfinder:*`,
+direct it through that workflow; otherwise offer to pick it up normally.
 
 If nothing clears the bar, say so plainly and recommend against unattended work
 rather than lowering the bar.

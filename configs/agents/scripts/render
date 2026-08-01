@@ -10,8 +10,11 @@ fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT="$1"
 REVIEW_SKILL="$ROOT/skills/review/SKILL.md"
-PREAMBLE="$ROOT/agents/branch-reviewer/preamble.md"
-OUTPUT_CONTRACT="$ROOT/agents/branch-reviewer/output.md"
+REVIEW_PREAMBLE="$ROOT/agents/branch-reviewer/preamble.md"
+REVIEW_OUTPUT_CONTRACT="$ROOT/agents/branch-reviewer/output.md"
+RESEARCH_SKILL="$ROOT/skills/research/SKILL.md"
+RESEARCH_PREAMBLE="$ROOT/agents/primary-source-researcher/preamble.md"
+RESEARCH_OUTPUT_CONTRACT="$ROOT/agents/primary-source-researcher/output.md"
 CONTEXT7_COMMAND="${DOTFILES_CONTEXT7_COMMAND:-$HOME/.config/dotfiles/bin/context7-mcp}"
 
 for candidate in python3.13 python3.12 python3.11; do
@@ -44,16 +47,27 @@ mkdir -p \
 
 "$PYTHON" "$ROOT/scripts/render-mcp" "$ROOT" "$OUTPUT" "$CONTEXT7_COMMAND"
 
-BODY="$OUTPUT/branch-reviewer-body.md"
-cat "$PREAMBLE" >"$BODY"
-printf '\n' >>"$BODY"
+REVIEW_BODY="$OUTPUT/branch-reviewer-body.md"
+cat "$REVIEW_PREAMBLE" >"$REVIEW_BODY"
+printf '\n' >>"$REVIEW_BODY"
 awk '
 	NR == 1 && $0 == "---" { in_frontmatter = 1; next }
 	in_frontmatter && $0 == "---" { in_frontmatter = 0; next }
 	!in_frontmatter { print }
-' "$REVIEW_SKILL" >>"$BODY"
-printf '\n' >>"$BODY"
-cat "$OUTPUT_CONTRACT" >>"$BODY"
+' "$REVIEW_SKILL" >>"$REVIEW_BODY"
+printf '\n' >>"$REVIEW_BODY"
+cat "$REVIEW_OUTPUT_CONTRACT" >>"$REVIEW_BODY"
+
+RESEARCH_BODY="$OUTPUT/primary-source-researcher-body.md"
+cat "$RESEARCH_PREAMBLE" >"$RESEARCH_BODY"
+printf '\n' >>"$RESEARCH_BODY"
+awk '
+	NR == 1 && $0 == "---" { in_frontmatter = 1; next }
+	in_frontmatter && $0 == "---" { in_frontmatter = 0; next }
+	!in_frontmatter { print }
+' "$RESEARCH_SKILL" >>"$RESEARCH_BODY"
+printf '\n' >>"$RESEARCH_BODY"
+cat "$RESEARCH_OUTPUT_CONTRACT" >>"$RESEARCH_BODY"
 
 cat >"$OUTPUT/claude/agents/branch-reviewer.md" <<'EOF'
 ---
@@ -63,7 +77,7 @@ tools: Bash, Read, Grep, Glob
 ---
 
 EOF
-cat "$BODY" >>"$OUTPUT/claude/agents/branch-reviewer.md"
+cat "$REVIEW_BODY" >>"$OUTPUT/claude/agents/branch-reviewer.md"
 
 cat >"$OUTPUT/opencode/agent/branch-reviewer.md" <<'EOF'
 ---
@@ -74,7 +88,7 @@ permission:
 ---
 
 EOF
-cat "$BODY" >>"$OUTPUT/opencode/agent/branch-reviewer.md"
+cat "$REVIEW_BODY" >>"$OUTPUT/opencode/agent/branch-reviewer.md"
 
 cat >"$OUTPUT/cursor/agents/branch-reviewer.md" <<'EOF'
 ---
@@ -85,7 +99,7 @@ readonly: true
 ---
 
 EOF
-cat "$BODY" >>"$OUTPUT/cursor/agents/branch-reviewer.md"
+cat "$REVIEW_BODY" >>"$OUTPUT/cursor/agents/branch-reviewer.md"
 
 cat >"$OUTPUT/pi/agents/branch-reviewer.md" <<'EOF'
 ---
@@ -99,7 +113,7 @@ acceptanceRole: read-only
 ---
 
 EOF
-cat "$BODY" >>"$OUTPUT/pi/agents/branch-reviewer.md"
+cat "$REVIEW_BODY" >>"$OUTPUT/pi/agents/branch-reviewer.md"
 
 cat >"$OUTPUT/codex/agents/branch-reviewer.toml" <<'EOF'
 name = "branch-reviewer"
@@ -107,7 +121,7 @@ description = "Review the current branch and working tree against its base and r
 sandbox_mode = "read-only"
 developer_instructions = '''
 EOF
-cat "$BODY" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
+cat "$REVIEW_BODY" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
 printf "\n'''\n" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
 
 cat >"$OUTPUT/cursor/rules/global-agent-instructions.mdc" <<'EOF'
@@ -119,4 +133,59 @@ alwaysApply: true
 EOF
 cat "$ROOT/AGENTS.md" >>"$OUTPUT/cursor/rules/global-agent-instructions.mdc"
 
-rm "$BODY"
+cat >"$OUTPUT/claude/agents/primary-source-researcher.md" <<'EOF'
+---
+name: primary-source-researcher
+description: Investigate a question against primary sources and capture cited findings in the repository. Use for delegated research.
+tools: Bash, Read, Grep, Glob, Write, Edit
+---
+
+EOF
+cat "$RESEARCH_BODY" >>"$OUTPUT/claude/agents/primary-source-researcher.md"
+
+cat >"$OUTPUT/opencode/agent/primary-source-researcher.md" <<'EOF'
+---
+description: Investigate a question against primary sources and capture cited findings in the repository. Use for delegated research.
+mode: subagent
+permission:
+  edit: allow
+---
+
+EOF
+cat "$RESEARCH_BODY" >>"$OUTPUT/opencode/agent/primary-source-researcher.md"
+
+cat >"$OUTPUT/cursor/agents/primary-source-researcher.md" <<'EOF'
+---
+name: primary-source-researcher
+description: Investigate a question against primary sources and capture cited findings in the repository. Use for delegated research.
+model: inherit
+readonly: false
+---
+
+EOF
+cat "$RESEARCH_BODY" >>"$OUTPUT/cursor/agents/primary-source-researcher.md"
+
+cat >"$OUTPUT/pi/agents/primary-source-researcher.md" <<'EOF'
+---
+name: primary-source-researcher
+description: Investigate a question against primary sources and capture cited findings in the repository. Use for delegated research.
+tools: read, grep, find, ls, bash, edit, write
+systemPromptMode: replace
+inheritProjectContext: true
+inheritSkills: true
+acceptanceRole: writer
+---
+
+EOF
+cat "$RESEARCH_BODY" >>"$OUTPUT/pi/agents/primary-source-researcher.md"
+
+cat >"$OUTPUT/codex/agents/primary-source-researcher.toml" <<'EOF'
+name = "primary-source-researcher"
+description = "Investigate a question against primary sources and capture cited findings in the repository. Use for delegated research."
+sandbox_mode = "workspace-write"
+developer_instructions = '''
+EOF
+cat "$RESEARCH_BODY" >>"$OUTPUT/codex/agents/primary-source-researcher.toml"
+printf "\n'''\n" >>"$OUTPUT/codex/agents/primary-source-researcher.toml"
+
+rm "$REVIEW_BODY" "$RESEARCH_BODY"

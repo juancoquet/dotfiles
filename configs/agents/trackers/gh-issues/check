@@ -37,13 +37,26 @@ grep -q "experimental.session.compacting" "$repo/.opencode/plugins/gh-issues-pri
 for value in \
 	type:epic type:feature type:bug type:task \
 	status:draft status:todo status:in-progress \
-	priority:critical priority:high priority:low priority:deferred; do
+	priority:critical priority:high priority:low priority:deferred \
+	wayfinder:map wayfinder:research wayfinder:prototype \
+	wayfinder:grilling wayfinder:task; do
 	grep -q "\`$value\`" "$root/gh-issues-context.md"
 done
+
+grep -q '^## Wayfinding Operations$' "$root/gh-issues-context.md"
+grep -q -- '--parent <map-number>' "$root/gh-issues-context.md"
+grep -q '/sub_issues' "$root/gh-issues-context.md"
+grep -q '/dependencies/blocked_by' "$root/gh-issues-context.md"
+grep -q 'Research subagents may resolve tickets concurrently' \
+	"$root/gh-issues-context.md"
+grep -q 'reconcile all closed children' "$root/gh-issues-context.md"
 
 test "$(grep -c -- '--limit 20' "$root/gh-issues-context.md")" = 4
 grep -q 'gh label list' "$root/gh-issues-context.md"
 grep -q 'Theme labels' "$root/gh-issues-context.md"
+grep -q 'Workflow labels' "$root/gh-issues-context.md"
+grep -q 'These labels assign an issue to that workflow' \
+	"$root/gh-issues-context.md"
 grep -q 'Do not duplicate this with a `status:blocked`' \
 	"$root/gh-issues-context.md"
 grep -q '\*\*Milestones\*\* group issues' \

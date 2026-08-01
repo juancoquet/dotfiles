@@ -40,10 +40,12 @@ Translate provider data into these concepts without requiring identical names:
 
 ## Labels Are Signals, Not Directives
 
-Treat every label — priority, type, and any theme label — as evidence, not an
-instruction. A label reflects what someone believed when they applied it, so
-your reading of the item's description, readiness, and this skill's lens is
-what decides:
+Treat priority, type, and ordinary theme labels as evidence, not instructions.
+The exception is a label that the tracker contract explicitly defines as
+workflow ownership, such as `wayfinder:*`; it determines which skill may work
+the item, not whether the item is worth doing. Otherwise, a label reflects what
+someone believed when they applied it, so your reading of the item's
+description, readiness, and this skill's lens is what decides:
 
 - A theme label matching this skill's lens is a prior: it can break a tie, but
   never selects an item on its own or excuses skipping your own assessment.

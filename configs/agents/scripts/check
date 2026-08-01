@@ -25,15 +25,20 @@ fi
 
 expected=(
 	"claude/agents/branch-reviewer.md"
+	"claude/agents/primary-source-researcher.md"
 	"claude/mcp.json"
 	"codex/agents/branch-reviewer.toml"
+	"codex/agents/primary-source-researcher.toml"
 	"codex/config.toml"
 	"cursor/agents/branch-reviewer.md"
+	"cursor/agents/primary-source-researcher.md"
 	"cursor/mcp.json"
 	"cursor/rules/global-agent-instructions.mdc"
 	"opencode/agent/branch-reviewer.md"
+	"opencode/agent/primary-source-researcher.md"
 	"opencode/opencode.json"
 	"pi/agents/branch-reviewer.md"
+	"pi/agents/primary-source-researcher.md"
 )
 
 for file in "${expected[@]}"; do
@@ -81,6 +86,8 @@ assert not paths, f"Codex source config contains machine-specific paths: {paths}
 PY
 "$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/agents/branch-reviewer.toml"
+"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+	"$OUTPUT/codex/agents/primary-source-researcher.toml"
 "$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/config.toml"
 
@@ -135,6 +142,31 @@ grep -q 'Return only a JSON array' "$OUTPUT/claude/agents/branch-reviewer.md"
 grep -q 'do not assume that the repository defines a custom review skill' \
 	"$OUTPUT/opencode/agent/branch-reviewer.md"
 grep -q '^acceptanceRole: read-only$' "$OUTPUT/pi/agents/branch-reviewer.md"
+grep -q 'do not delegate to another agent' \
+	"$OUTPUT/claude/agents/primary-source-researcher.md"
+grep -q '^sandbox_mode = "workspace-write"$' \
+	"$OUTPUT/codex/agents/primary-source-researcher.toml"
+grep -q '^acceptanceRole: writer$' \
+	"$OUTPUT/pi/agents/primary-source-researcher.md"
+grep -q '^  allow_implicit_invocation: false$' \
+	"$ROOT/skills/wayfinder/agents/openai.yaml"
+grep -q 'If the frontier is empty' "$ROOT/skills/wayfinder/SKILL.md"
+grep -q 'never one that is blocked or already claimed' \
+	"$ROOT/skills/wayfinder/SKILL.md"
+grep -q 'verify that it is an open child' "$ROOT/skills/wayfinder/SKILL.md"
+grep -q 'Find every child closed as `completed`' \
+	"$ROOT/skills/wayfinder/SKILL.md"
+grep -q 'Wayfinder map, do not implement the decision' \
+	"$ROOT/skills/prototype/SKILL.md"
+
+if rg -n -i '\bthe user\b' \
+	"$ROOT/skills/wayfinder" \
+	"$ROOT/skills/research" \
+	"$ROOT/skills/prototype" \
+	"$ROOT/agents/primary-source-researcher"; then
+	echo "new agent content must address me directly" >&2
+	exit 1
+fi
 
 if [ -f "$HOME/.config/dotfiles/secrets.env" ] && \
 	grep -q '^CONTEXT7_API_KEY=' "$HOME/.config/dotfiles/secrets.env"; then

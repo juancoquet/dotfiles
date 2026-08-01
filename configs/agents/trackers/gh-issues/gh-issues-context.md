@@ -20,13 +20,15 @@ early in the session:
 gh label list --limit 100
 ```
 
-Sort what you find into two groups:
+Sort what you find into three groups:
 
 - **Structural axes** — the `type:`, `status:`, and `priority:` families
   documented below. Their names and meanings are part of the workflow contract;
   treat them as authoritative. If the tracker is missing one or carries an
   extra `type:`/`status:`/`priority:` label this guide does not describe, report
   the mismatch rather than inventing a meaning for it.
+- **Workflow labels** — the `wayfinder:` family documented under Wayfinding
+  operations. These labels assign an issue to that workflow and are not themes.
 - **Theme labels** — every other label the project has configured (for example
   an area, component, or cross-cutting concern). A theme is orthogonal to the
   structural axes: it cuts across the `type:` partition and coexists with any
@@ -140,6 +142,77 @@ than one priority label.
 - **Duplicate** points from redundant work to the canonical issue.
 - **Milestones** group issues into releases or checkpoints; they are not issue
   types or hierarchy.
+
+## Wayfinding Operations
+
+The `/wayfinder` skill owns issues labelled `wayfinder:*`. Do not work one
+through `/pickup` or `/pickup-afk`; redirect it to `/wayfinder` with its map and
+ticket. These issues use the structural workflow above plus one required
+Wayfinder label:
+
+- A map uses `type:epic`, `status:in-progress`, and `wayfinder:map`.
+- A decision ticket uses `type:task`, begins at `status:todo`, and has exactly
+  one of `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, or
+  `wayfinder:task`.
+
+The map is the parent issue and its decision tickets are native sub-issues. A
+decision ticket's deliberately small `## Question` body is an exception to the
+ordinary implementation-issue shape: its parent supplies the wider why, and its
+resolution comment holds the answer.
+
+GitHub CLI 2.94 and newer exposes sub-issues and dependencies directly. Check
+`gh issue create --help` for `--parent` and `--blocked-by`. When present, prefer:
+
+```bash
+gh issue create --title "<ticket name>" --body-file - \
+  --parent <map-number> --label type:task --label status:todo \
+  --label wayfinder:<type>
+gh issue edit <ticket> --add-blocked-by <blocker>
+gh issue view <map> --json subIssues
+gh issue view <ticket> --json blockedBy,blocking,parent
+```
+
+On older clients, use the REST endpoints through `gh api`. They work with the
+installed authentication and preserve the same native relationships:
+
+```bash
+# Link an existing ticket as a child; the API needs its database id.
+child_id=$(gh api repos/{owner}/{repo}/issues/<ticket> --jq .id)
+gh api --method POST repos/{owner}/{repo}/issues/<map>/sub_issues \
+  -F sub_issue_id="$child_id"
+
+# Mark the ticket as blocked by another issue; this also needs a database id.
+blocker_id=$(gh api repos/{owner}/{repo}/issues/<blocker> --jq .id)
+gh api --method POST \
+  repos/{owner}/{repo}/issues/<ticket>/dependencies/blocked_by \
+  -F issue_id="$blocker_id"
+
+# List children in map order and inspect their live dependency summaries.
+gh api --paginate repos/{owner}/{repo}/issues/<map>/sub_issues
+gh api repos/{owner}/{repo}/issues/<ticket> \
+  --jq .issue_dependencies_summary.blocked_by
+```
+
+The frontier is the map's open children, in map order, with no assignee and
+zero open blockers. Claim a frontier ticket with assignment as the first tracker
+write, then move it into progress:
+
+```bash
+gh issue edit <ticket> --add-assignee @me
+gh issue edit <ticket> --remove-label status:todo \
+  --add-label status:in-progress
+```
+
+Resolve a decision by commenting with the answer, closing it with reason
+`completed`, then appending one linked gist to the map's Decisions-so-far. Close
+a ticket ruled beyond the destination with reason `not planned` and link its
+reason under Out of scope instead. Reload the map body immediately before every
+replacement so concurrent edits are preserved.
+
+Research subagents may resolve tickets concurrently, but they never edit the map
+body. At the start of every `/wayfinder` pass, reconcile all closed children:
+completed decisions missing from Decisions so far, and not-planned tickets
+missing from Out of scope. Do this before selecting the frontier.
 
 Use `gh issue create --help`, `gh issue edit --help`,
 `gh issue develop --help`, and `gh issue close --help` for the native commands

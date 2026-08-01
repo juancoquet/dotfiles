@@ -11,11 +11,13 @@ emits it as plain text for Claude Code, Codex, and OpenCode, or as Cursor's
 ## Repository setup
 
 1. Copy this directory into the target repository as `.agents/gh-issues/`.
-2. Create the type, status, and priority labels enumerated in
+2. Create the type, status, priority, and Wayfinder labels enumerated in
    `gh-issues-context.md`. Their names and meanings are part of the workflow
-   contract; colors are presentation-only. Any further theme labels a project
-   wants are optional and project-specific — agents discover them at runtime
-   via `gh label list`, so they need no entry in the context file.
+   contract; colors are presentation-only. The required Wayfinder labels are
+   `wayfinder:map`, `wayfinder:research`, `wayfinder:prototype`,
+   `wayfinder:grilling`, and `wayfinder:task`. Any further theme labels a
+   project wants are optional and project-specific — agents discover them at
+   runtime via `gh label list`, so they need no entry in the context file.
 3. Confirm that `gh auth status` succeeds.
 4. Add the repo-local wiring for every harness used in the repository.
 

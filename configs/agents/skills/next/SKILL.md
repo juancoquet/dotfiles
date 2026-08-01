@@ -79,4 +79,6 @@ the tracker's highest urgency levels, even beyond the row cap.
 
 Name exactly one item to pick up, or recommend finishing one in-progress item.
 Explain the decisive priority, dependency, sequence, and momentum evidence in a
-short paragraph.
+short paragraph. If the item belongs to a tracker-owned workflow such as
+`wayfinder:*`, offer to start it through that workflow; otherwise offer to pick
+it up normally.

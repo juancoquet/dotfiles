@@ -23,7 +23,13 @@ canonical tracker, fetch and read the issue in full, follow the context graph
 against the current state of the repo. Carry every gap and discrepancy it
 surfaces into the briefing below.
 
-## 2. Brief Back
+## 2. Respect Workflow Ownership
+
+If the issue carries a `wayfinder:*` label, stop and direct me to `/wayfinder`
+with the parent map and ticket. Wayfinder decision tickets are planning
+questions, not implementation work; do not brief one as an ordinary pickup.
+
+## 3. Brief Back
 
 Deliver the briefing in this shape. Every section other than the opening is
 optional: if there is nothing real to put under a heading, omit the section

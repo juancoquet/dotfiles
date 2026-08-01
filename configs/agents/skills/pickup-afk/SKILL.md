@@ -26,7 +26,14 @@ canonical tracker, fetch and read the issue in full, follow the context graph
 against the current state of the repo. The gaps and discrepancies it surfaces
 feed directly into the safety check below.
 
-## 2. Confirm It's Safe to Work Unattended
+## 2. Respect Workflow Ownership
+
+If the issue carries a `wayfinder:*` label, stop and direct me to `/wayfinder`
+with the parent map and ticket. Wayfinder decision tickets are planning
+questions, not implementation work; never route one through unattended
+implementation.
+
+## 3. Confirm It's Safe to Work Unattended
 
 Before touching anything, judge whether this specific issue can be completed
 without me in the loop, using the context you just gathered.
@@ -55,7 +62,7 @@ ambiguity as disqualifying — the cost of a wrong unattended change outweighs
 finishing one more issue. In every stop case, leave a short note on the issue's
 findings and the decision it needs, and do not change the code.
 
-## 3. Start the Work
+## 4. Start the Work
 
 Once the issue clears the bar, work it end to end following the repository's
 tracker workflow and my global engineering rules:

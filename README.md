@@ -203,8 +203,9 @@ Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
 - `skills/` contains portable Agent Skills and is linked as a whole into each
   harness's native global skill location. opencode reads the canonical skills
   through its built-in compatibility paths.
-- `agents/branch-reviewer/` contains the canonical branch-reviewer additions;
-  its review procedure comes from `skills/review/SKILL.md`.
+- `agents/` contains canonical additions for native subagents. The branch
+  reviewer's procedure comes from `skills/review/SKILL.md`; the researcher's
+  procedure comes from `skills/research/SKILL.md`.
 - `harnesses/` contains settings that are genuinely native to one harness.
 - `mcp/servers.json` defines the shared Context7 and Linear MCP servers once.
   Harness-specific MCPs stay in the relevant native source under `harnesses/`,
@@ -214,8 +215,9 @@ Shared configuration for Claude Code, Codex, Cursor, and opencode lives under
   repository enables it through its project-local harness hooks; installation
   does not activate it globally for unrelated repositories.
 
-`install.sh` renders native branch-reviewer, MCP, Cursor rule, Codex, and
-opencode files into `~/.config/dotfiles/generated/agents/`, then links those
+`install.sh` renders native branch-reviewer and researcher definitions, MCP,
+Cursor rule, Codex, and opencode files into
+`~/.config/dotfiles/generated/agents/`, then links those
 files into the harness directories. Claude's MCP entries are structurally
 merged into `~/.claude.json` because that file also contains Claude-owned
 runtime state. Generated destinations are not authoritative and should not be
