@@ -1,0 +1,5 @@
+interface:
+  display_name: "Explain"
+  short_description: "Explain something extremely clearly"
+policy:
+  allow_implicit_invocation: false
