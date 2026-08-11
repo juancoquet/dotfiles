@@ -120,6 +120,7 @@ return {
     keys = {
       { "<leader>gc", open_git_panel_with_first_diff, desc = "DiffBandit: Git panel" },
       { "<leader>gf", "<cmd>DiffBanditGitCurrent<cr>", desc = "DiffBandit: Current-file diff" },
+      { "<leader>gl", "<cmd>DiffBanditGitLog<cr>", desc = "DiffBandit: Git log" },
       { "<leader>gp", toggle_git_panel, desc = "DiffBandit: Toggle commit panel" },
       { "<leader>gb", "<cmd>DiffBanditGitCompare<cr>", desc = "DiffBandit: Compare branches" },
     },
@@ -132,6 +133,7 @@ return {
         { "<leader>gb", desc = "DiffBandit: Compare branches" },
         { "<leader>gc", desc = "DiffBandit: Git panel" },
         { "<leader>gf", desc = "DiffBandit: Current-file diff" },
+        { "<leader>gl", desc = "DiffBandit: Git log" },
         { "<leader>gp", desc = "DiffBandit: Toggle commit panel" },
       },
     },
