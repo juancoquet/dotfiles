@@ -47,24 +47,23 @@ local function relative_path(path)
   return relative or path
 end
 
+local function diffbandit_metadata(bufnr)
+  local ok, state = pcall(require, "diffbandit.state")
+  local session = ok and state.sessions[vim.api.nvim_get_current_tabpage()]
+  if not session then
+    return nil
+  end
+
+  if session.left_buf == bufnr then
+    return { path = session.left.path, side = "old" }
+  end
+  if session.right_buf == bufnr then
+    return { path = session.right.path, side = "new" }
+  end
+end
+
 local function diff_metadata(bufnr)
-  local ok, lib = pcall(require, "diffview.lib")
-  if not ok then
-    return nil
-  end
-
-  local view = lib.get_current_view()
-  local layout = view and view.cur_layout
-  if not layout then
-    return nil
-  end
-
-  for symbol, side in pairs({ a = "old", b = "new" }) do
-    local window = layout[symbol]
-    if window and window.file.bufnr == bufnr then
-      return { path = window.file.absolute_path or window.file.path, side = side }
-    end
-  end
+  return diffbandit_metadata(bufnr)
 end
 
 local function selection()
