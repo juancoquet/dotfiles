@@ -50,6 +50,8 @@ return {
               return
             end
 
+            require("diffbandit.highlights").apply(state.get_config())
+
             local panel = session.panel or {}
             for _, buf in ipairs({ session.left_buf, session.right_buf, panel.nav_buf, panel.commit_buf }) do
               if buf and vim.api.nvim_buf_is_valid(buf) then
@@ -112,6 +114,9 @@ return {
         },
       },
     },
+    config = function(_, opts)
+      require("diffbandit").setup(opts)
+    end,
     keys = {
       { "<leader>gc", open_git_panel_with_first_diff, desc = "DiffBandit: Git panel" },
       { "<leader>gf", "<cmd>DiffBanditGitCurrent<cr>", desc = "DiffBandit: Current-file diff" },
