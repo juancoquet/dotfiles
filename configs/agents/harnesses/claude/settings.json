@@ -1,5 +1,6 @@
 {
   "model": "sonnet",
+  "includeCoAuthoredBy": false,
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   },
