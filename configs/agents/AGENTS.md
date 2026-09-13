@@ -25,6 +25,11 @@ either.
 - Do not consider a bug fixed until a test demonstrates the original failure
   and its resolution.
 
+## Worktrees
+
+- When you create a Git worktree, use
+  `$HOME/.worktrees/<repo-name>/<task-name>`, with a short, descriptive task name.
+
 ## Commits
 
 - Commit completed, verified work without waiting for me to request a

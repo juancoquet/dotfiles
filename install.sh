@@ -101,6 +101,7 @@ DOTFILES_CONTEXT7_COMMAND="$TARGET_HOME/.config/dotfiles/bin/context7-mcp" \
 link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$TARGET_HOME/.claude/CLAUDE.md"
 link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$TARGET_HOME/.codex/AGENTS.md"
 link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$TARGET_HOME/.config/opencode/AGENTS.md"
+link_managed "$DOTFILES_DIR/configs/agents/AGENTS.md" "$TARGET_HOME/.pi/agent/AGENTS.md"
 
 link_managed "$DOTFILES_DIR/configs/agents/skills" "$TARGET_HOME/.agents/skills"
 link_managed "$DOTFILES_DIR/configs/agents/skills" "$TARGET_HOME/.claude/skills"

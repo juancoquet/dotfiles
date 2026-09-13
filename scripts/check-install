@@ -4,9 +4,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-install-check.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
-mkdir -p "$WORK/server/.claude" "$WORK/server/.config/opencode/node_modules"
+mkdir -p "$WORK/server/.claude" "$WORK/server/.pi/agent" "$WORK/server/.config/opencode/node_modules"
 printf '%s\n' '{"theme":"dark","mcpServers":{"unrelated":{"command":"example"}}}' >"$WORK/server/.claude.json"
 printf '%s\n' 'original instructions' >"$WORK/server/.claude/CLAUDE.md"
+printf '%s\n' 'original Pi instructions' >"$WORK/server/.pi/agent/AGENTS.md"
 printf '%s\n' 'keep runtime' >"$WORK/server/.config/opencode/node_modules/fixture"
 printf '%s\n' 'keep shell' >"$WORK/server/.zshrc"
 for pass in first second; do
@@ -15,6 +16,8 @@ done
 test "$(cat "$WORK/server/.zshrc")" = 'keep shell'
 test "$(cat "$WORK/server/.config/opencode/node_modules/fixture")" = 'keep runtime'
 test "$(cat "$WORK"/server/.claude/CLAUDE.md.pre-dotfiles.*)" = 'original instructions'
+test "$(cat "$WORK/server/.pi/agent/AGENTS.md")" = "$(cat "$ROOT/configs/agents/AGENTS.md")"
+test "$(cat "$WORK"/server/.pi/agent/AGENTS.md.pre-dotfiles.*)" = 'original Pi instructions'
 test "$(readlink "$WORK/server/.config/nvim")" = "$ROOT/configs/nvim"
 for target in .claude/CLAUDE.md .claude/settings.json .codex/config.toml .cursor/mcp.json .cursor/skills .config/opencode/opencode.json .pi/agent/agents/branch-reviewer.md .pi/agent/extensions/code-comments.ts; do
 	test -s "$WORK/server/$target" || test -d "$WORK/server/$target"
@@ -36,6 +39,13 @@ assert cursor["mcpServers"]["context7"]["command"] == str(root / ".config/dotfil
 PY
 
 "$ROOT/install.sh" --profile desktop --target-home "$WORK/desktop" --skip-secrets >"$WORK/desktop.log"
+for profile in server desktop; do
+	for target in .claude/CLAUDE.md .codex/AGENTS.md .config/opencode/AGENTS.md .pi/agent/AGENTS.md; do
+		cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile/$target"
+	done
+	tail -n +6 "$WORK/$profile/.cursor/rules/global-agent-instructions.mdc" >"$WORK/$profile-cursor-instructions.md"
+	cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile-cursor-instructions.md"
+done
 for target in .config/ghostty .config/yabai .config/skhd .yabairc .skhdrc .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
 	test -e "$WORK/desktop/$target"
 done
