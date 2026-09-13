@@ -29,6 +29,8 @@ either.
 
 - When you create a Git worktree, use
   `$HOME/.worktrees/<repo-name>/<task-name>`, with a short, descriptive task name.
+- If your task has an issue number, prefix the task name with it:
+  `$HOME/.worktrees/<repo-name>/<issue-number>-<task-name>`.
 
 ## Commits
 
