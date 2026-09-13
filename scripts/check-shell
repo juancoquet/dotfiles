@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-shell-check.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+ZDOTDIR="$WORK" zsh -d -f -i -c 'source "$1"; command -v python3 >/dev/null; lf() { :; }; cd /tmp; print SHELL_OK' check "$ROOT/configs/zshrc" >"$WORK/output" 2>"$WORK/error"
+if [ -s "$WORK/error" ]; then
+	cat "$WORK/error" >&2
+	exit 1
+fi
+grep -q SHELL_OK "$WORK/output"
+echo 'Shell startup checks passed'

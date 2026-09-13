@@ -1,0 +1,4 @@
+# Keep user-installed tools available to non-interactive SSH commands too.
+typeset -U path PATH
+path=("$HOME/.local/bin" "$HOME/.cargo/bin" $path)
+export PATH

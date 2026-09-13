@@ -1,8 +1,11 @@
 # secrets (decrypted by install.sh via sops+age) -- -- -- -- --
 [ -f "$HOME/.config/dotfiles/secrets.env" ] && set -a && source "$HOME/.config/dotfiles/secrets.env" && set +a
 
+typeset -U path PATH
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+
 # homebrew -- -- -- -- -- -- -- -- -- -- -- -- --
-if [[ "$(uname)" == "Darwin" ]]; then
+if [[ "$(uname)" == "Darwin" && -x /opt/homebrew/bin/brew ]]; then
 	eval "$(/opt/homebrew/bin/brew shellenv)" # m-chip mac
 elif [[ -d /home/linuxbrew/.linuxbrew ]]; then
 	eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv zsh)"
@@ -11,20 +14,21 @@ fi
 # oh-my-zsh -- -- -- -- -- -- -- -- -- -- -- --
 export ZSH="$HOME/.oh-my-zsh" # Path to oh-my-zsh installation
 plugins=(vi-mode git zsh-autosuggestions zsh-syntax-highlighting z)
-source ${ZDOTDIR:-~}/.zplugins/cd-ls/cd-ls.plugin.zsh 
-source $ZSH/oh-my-zsh.sh
-eval "$(starship init zsh)"
+[ -r "${ZDOTDIR:-$HOME}/.zplugins/cd-ls/cd-ls.plugin.zsh" ] && source "${ZDOTDIR:-$HOME}/.zplugins/cd-ls/cd-ls.plugin.zsh"
+[ -r "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 export PATH="$HOME/.vscode-dotnet-sdk/.dotnet:$PATH"
 
 # PATH  -- -- -- -- -- -- -- -- -- -- -- -- --
-export PATH="$PATH:$HOME/Library/Python/3.9/bin"
-export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+if [[ "$(uname)" == Darwin ]]; then
+	export PATH="$PATH:$HOME/Library/Python/3.9/bin"
+	export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
+	export PATH="$PATH:/opt/homebrew/bin:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
+fi
 export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$HOME/.local/bin"
-export PATH="$PATH:/opt/homebrew/bin/"
 export PATH="$PATH:$HOME/.config/nvimconfigs/"
 export PATH="$PATH:/usr/bin/"
-export PATH="$PATH:/Applications/Sublime Text.app/Contents/SharedSupport/bin"
 command -v go &>/dev/null && export PATH="$PATH:$(go env GOPATH)/bin"
 export PATH="$PATH:$HOME/.config/emacs/bin"
 export PATH="$HOME/.opencode/bin:$PATH"
@@ -37,7 +41,13 @@ alias cs='csharp'
 alias claer='clear'
 alias c='clear'
 alias mkdir='mkdir -vp'
-alias lf='pls --grid=true'
+if command -v pls >/dev/null 2>&1; then
+	alias lf='pls --grid=true'
+elif [[ "$(uname)" == Linux ]]; then
+	alias lf='ls --color=auto'
+else
+	alias lf='ls -G'
+fi
 export CD_LS_COMMAND=lf
 alias py='python3'
 alias tm='tmux'
