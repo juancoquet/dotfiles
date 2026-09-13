@@ -7,18 +7,7 @@ DOTFILES="$(cd "$ROOT/../.." && pwd)"
 OUTPUT="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-agents.XXXXXX")"
 trap 'rm -rf "$OUTPUT"' EXIT
 
-for candidate in python3.13 python3.12 python3.11 python3; do
-	if command -v "$candidate" >/dev/null 2>&1 && \
-		"$candidate" -c 'import tomllib' >/dev/null 2>&1; then
-		PYTHON="$candidate"
-		break
-	fi
-done
-
-if [ -z "${PYTHON:-}" ]; then
-	echo "Python 3.11 or newer is required to validate TOML" >&2
-	exit 1
-fi
+PYTHON="$DOTFILES/scripts/python"
 
 "$ROOT/scripts/render" "$OUTPUT"
 "$ROOT/trackers/gh-issues/check"
@@ -60,12 +49,14 @@ done
 	"$DOTFILES/configs/opencode/opencode.json"
 "$PYTHON" -c 'import json, pathlib; json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())' \
 	"$ROOT/mcp/servers.json"
-"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+"$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$ROOT/harnesses/codex/config.toml"
 "$PYTHON" - "$ROOT/harnesses/codex/config.toml" <<'PY'
 import pathlib
 import sys
-import tomllib
+import importlib
+
+tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli")
 
 
 def strings(value):
@@ -84,11 +75,11 @@ config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
 paths = [value for value in strings(config) if value.startswith(("/", "~/"))]
 assert not paths, f"Codex source config contains machine-specific paths: {paths}"
 PY
-"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+"$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/agents/branch-reviewer.toml"
-"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+"$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/agents/primary-source-researcher.toml"
-"$PYTHON" -c 'import pathlib, sys, tomllib; tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
+"$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/config.toml"
 
 "$PYTHON" - "$OUTPUT" <<'PY'
@@ -96,7 +87,9 @@ import json
 import os
 import pathlib
 import sys
-import tomllib
+import importlib
+
+tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli")
 
 output = pathlib.Path(sys.argv[1])
 expected = {"context7", "linear"}

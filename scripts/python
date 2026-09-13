@@ -1,0 +1,31 @@
+#!/bin/bash
+set -euo pipefail
+
+compatible() {
+	[ -x "$1" ] && [ ! -d "$1" ] &&
+		"$1" -c 'import sys; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1
+}
+
+if [ -n "${DOTFILES_PYTHON:-}" ]; then
+	if compatible "$DOTFILES_PYTHON"; then
+		exec "$DOTFILES_PYTHON" "$@"
+	fi
+	echo 'DOTFILES_PYTHON must point to Python 3.9 or newer' >&2
+	exit 1
+fi
+
+IFS=: read -r -a directories <<< "$PATH"
+for directory in "${directories[@]}"; do
+	directory="${directory:-.}"
+	for candidate in "$directory/python3" "$directory/python" "$directory"/python[0-9]*; do
+		[ ! "$candidate" -ef "${BASH_SOURCE[0]}" ] || continue
+		name="${candidate##*/}"
+		[[ "$name" =~ ^python([0-9]+(\.[0-9]+)*t?)?$ ]] || continue
+		if compatible "$candidate"; then
+			exec "$candidate" "$@"
+		fi
+	done
+done
+
+echo 'Python 3.9 or newer is required; install it or set DOTFILES_PYTHON to its executable' >&2
+exit 1

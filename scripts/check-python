@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-python-check.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+# Exercise the original failure through the public rendering entry point.
+"$ROOT/configs/agents/scripts/render" "$WORK/generated"
+test -s "$WORK/generated/codex/config.toml"
+test -s "$WORK/generated/cursor/mcp.json"
+
+RUNTIME="$("$ROOT/scripts/python" -c 'import sys; print(sys.executable)')"
+mkdir "$WORK/bin"
+ln -s "$RUNTIME" "$WORK/bin/python3.99"
+DOTFILES_PYTHON='' PATH="$WORK/bin" /bin/bash "$ROOT/scripts/python" -c 'import sys; assert sys.version_info >= (3, 9)'
+rm "$WORK/bin/python3.99"
+ln -s "$RUNTIME" "$WORK/bin/python"
+DOTFILES_PYTHON='' PATH="$WORK/bin" /bin/bash "$ROOT/scripts/python" -c 'import sys; assert sys.version_info >= (3, 9)'
+rm "$WORK/bin/python"
+ln -s "$ROOT/scripts/python" "$WORK/bin/python"
+ln -s "$RUNTIME" "$WORK/bin/python3.99"
+DOTFILES_PYTHON='' PATH="$WORK/bin" /bin/bash "$ROOT/scripts/python" -c 'import sys; assert sys.version_info >= (3, 9)'
+rm "$WORK/bin/python" "$WORK/bin/python3.99"
+if DOTFILES_PYTHON='' PATH="$WORK/bin" /bin/bash "$ROOT/scripts/python" -c 'pass' 2>"$WORK/error"; then
+	echo 'discovery unexpectedly succeeded without Python' >&2
+	exit 1
+fi
+grep -q 'Python 3.9 or newer' "$WORK/error"
+
+if [ -n "${DOTFILES_TEST_OLD_PYTHON:-}" ]; then
+	if DOTFILES_PYTHON="$DOTFILES_TEST_OLD_PYTHON" "$ROOT/scripts/python" -c 'pass' 2>"$WORK/error"; then
+		echo 'discovery unexpectedly accepted an unsupported Python' >&2
+		exit 1
+	fi
+fi
+echo 'Python discovery and rendering checks passed'

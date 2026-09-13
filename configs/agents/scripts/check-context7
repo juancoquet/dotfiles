@@ -10,7 +10,12 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import IO, TypeGuard, cast
+from typing import IO, cast
+
+try:
+    from typing import TypeGuard
+except ImportError:
+    from typing_extensions import TypeGuard
 
 
 JsonObject = dict[str, object]

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-tmux-check.XXXXXX")"
+SOCKET="dotfiles-check-$$"
+trap 'tmux -L "$SOCKET" kill-server 2>/dev/null || true; rm -rf "$WORK"' EXIT
+
+cat >"$WORK/pane" <<'SH'
+#!/bin/sh
+printf '%s\n' "$TERM" >"$1"
+sleep 30
+SH
+chmod +x "$WORK/pane"
+TERM=xterm-256color tmux -L "$SOCKET" -f "${DOTFILES_TMUX_CONFIG:-$ROOT/configs/tmux/tmux.conf}" new-session -d -s check "$WORK/pane $WORK/terminal"
+for _attempt in 1 2 3 4 5 6 7 8 9 10; do
+	[ ! -s "$WORK/terminal" ] || break
+	sleep 0.1
+done
+test "$(cat "$WORK/terminal")" = tmux-256color
+echo 'tmux inner terminal check passed'

@@ -18,13 +18,63 @@ cd ~/dotfiles
 ./install.sh
 ```
 
-`install.sh` symlinks every config in `configs/` into place and, if `sops`
+`install.sh` symlinks the selected configs into place and, if `sops`
 is installed and your age key is present, decrypts `secrets.enc.yaml` into
 `~/.config/dotfiles/secrets.env`. It's safe to re-run at any time. It will
 refuse to overwrite a file at the destination that isn't already a symlink
 (back that up / remove it yourself first). Agent config is the exception:
 the first migration backs up existing files with a `.pre-dotfiles.<timestamp>`
 suffix before linking the managed replacements.
+
+On Linux, the default `server` profile installs the shell, prompt, tmux, full
+Neovim configuration and **all** agent configurations. It omits Ghostty's GUI
+config, yabai, skhd, VSCodeVim and the macOS notification sound. On macOS the
+default `desktop` profile keeps those desktop targets. You can choose explicitly:
+
+```bash
+./install.sh --profile server --skip-secrets
+```
+
+`--skip-secrets` prevents decryption even when your age key is present. The
+installer configures agent tools; it does not install their executables or log
+into their accounts. Install the dependencies you need before using them.
+
+Python is discovered from `PATH`, including generic and versioned executable
+names. Python **3.9 or newer** is accepted without an upper version bound. Set
+`DOTFILES_PYTHON` to an executable path to select a particular interpreter.
+Python 3.9 needs `tomli` and `typing_extensions`; Python 3.10 needs `tomli`.
+Python 3.11 and newer use the standard library. On an older Python, install the
+compatibility packages into a virtual environment and select that interpreter:
+
+```bash
+python3 -m venv ~/.local/share/dotfiles-python && ~/.local/share/dotfiles-python/bin/python -m pip install 'tomli; python_version < "3.11"' 'typing_extensions; python_version < "3.10"'
+```
+
+```bash
+DOTFILES_PYTHON="$HOME/.local/share/dotfiles-python/bin/python" ./install.sh --profile server --skip-secrets
+```
+
+The shared `.zshenv` makes `~/.local/bin` and `~/.cargo/bin` available to
+non-interactive Zsh commands. `.zshrc` tolerates absent optional plugins/tools;
+install Oh My Zsh, its selected plugins and Starship for the full shell experience.
+Without `pls`, `lf` uses the platform's ordinary colour-capable `ls`.
+
+For Linux/SSH terminal support, install Ghostty's terminfo entry on the server
+using [Ghostty's instructions](https://ghostty.org/docs/help/terminfo). Keep the
+GUI and fonts on your local machine. Inside tmux, the managed configuration uses
+`tmux-256color`.
+
+Run the checks on Linux:
+
+```bash
+scripts/check-python && scripts/check-install && scripts/check-shell && scripts/check-tmux && configs/agents/scripts/check
+```
+
+The installation check uses `--target-home /absolute/temporary/path` and
+`--skip-secrets`, preserving your real home directory. It verifies both profiles,
+repeat installation, backups and unrelated harness runtime state. The tmux check
+uses its own disposable server. The shell check needs Zsh; the agent check needs
+ripgrep and reports a skip if Context7 credentials are unavailable.
 
 ## secrets
 
