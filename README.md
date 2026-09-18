@@ -115,14 +115,14 @@ brew install yqrashawn/goku/goku
 ```
 
 - make a profile in karabiner named `Default`
-- run `GOKU_EDN_CONFIG_FILE='~/dotfiles/configs/karabiner.edn' goku`
+- run `GOKU_EDN_CONFIG_FILE="$HOME/dotfiles/configs/karabiner.edn" goku`
 
 ### window management (yabai)
 
 - install yabai + skhd
 
 ```
-brew install yabai skhd jq
+brew install koekeishiya/formulae/yabai koekeishiya/formulae/skhd jq
 ```
 
 - enable services
@@ -202,10 +202,10 @@ cargo install --git https://github.com/pls-rs/pls
   `configs/starship/.hushlogin` -> `~/.hushlogin`)
 
 ### nvim
-- install `node`
+- install `neovim` and `node`
 
 ```
-brew install node
+brew install neovim node
 ```
 
 - `./install.sh` symlinks `configs/nvim` -> `~/.config/nvim`
