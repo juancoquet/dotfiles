@@ -34,3 +34,17 @@ shift + ctrl - i : ~/.config/yabai/toggle-ghostty-width.sh
 
 # toggle yabai (stop/start)
 shift + ctrl + cmd - y : ~/.config/yabai/toggle-yabai.sh
+
+# home row -> focus space, matching karabiner's layer1 home-row-to-digit map.
+# karabiner only produces these while right cmd is held; bind them directly so
+# they also work on a machine where the karabiner driver cannot load.
+shift + ctrl - a : yabai -m space --focus 1
+shift + ctrl - s : yabai -m space --focus 2
+shift + ctrl - d : yabai -m space --focus 3
+shift + ctrl - f : yabai -m space --focus 4
+shift + ctrl - g : yabai -m space --focus 5
+shift + ctrl - h : yabai -m space --focus 6
+shift + ctrl - j : yabai -m space --focus 7
+shift + ctrl - k : yabai -m space --focus 8
+shift + ctrl - l : yabai -m space --focus 9
+shift + ctrl - 0x29 : yabai -m space --focus 10
