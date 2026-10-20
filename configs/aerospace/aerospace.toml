@@ -3,6 +3,9 @@ config-version = 2
 start-at-login = true
 auto-reload-config = true
 
+# on-window-detected only fires for windows opened after startup
+after-startup-command = ['run-callback --for-every-window on-window-detected']
+
 default-root-container-layout = 'tiles'
 default-root-container-orientation = 'auto'
 
@@ -78,6 +81,10 @@ if.app-id = 'com.apple.iCal'
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
 if.app-id = 'com.tinyspeck.slackmacgap'
 run = 'move-node-to-workspace 4'
 
@@ -86,7 +93,11 @@ if.app-id = 'app.zen-browser.zen'
 run = 'move-node-to-workspace 7'
 
 [[on-window-detected]]
-if.app-id = 'com.mitchellh.ghostty'
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 7'
+
+[[on-window-detected]]
+if.app-id = 'com.todesktop.230313mzl4w4u92'
 run = 'move-node-to-workspace 8'
 
 [[on-window-detected]]
@@ -94,11 +105,7 @@ if.app-id = 'org.mozilla.firefoxdeveloperedition'
 run = 'move-node-to-workspace 8'
 
 [[on-window-detected]]
-if.app-id = 'com.google.Chrome'
-run = 'move-node-to-workspace 8'
-
-[[on-window-detected]]
-if.app-id = 'md.obsidian'
+if.app-id = 'com.mitchellh.ghostty'
 run = 'move-node-to-workspace 9'
 
 [[on-window-detected]]
