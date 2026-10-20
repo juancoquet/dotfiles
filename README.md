@@ -120,7 +120,7 @@ brew install yqrashawn/goku/goku
 ### window management (aerospace)
 
 [aerospace](https://github.com/nikitabobko/AeroSpace) tiles windows and
-provides its own workspaces and keybindings. it works with sip enabled.
+provides its own workspaces and keybindings.
 
 - install aerospace
 

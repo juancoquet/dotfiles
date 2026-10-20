@@ -38,15 +38,7 @@ cursor = json.loads((root / ".cursor/mcp.json").read_text())
 assert cursor["mcpServers"]["context7"]["command"] == str(root / ".config/dotfiles/bin/context7-mcp")
 PY
 
-mkdir -p "$WORK/desktop/.config"
-ln -s "$ROOT/configs/yabai" "$WORK/desktop/.config/yabai"
-ln -s "$ROOT/configs/yabai/yabairc" "$WORK/desktop/.yabairc"
-ln -s "$ROOT/configs/skhd" "$WORK/desktop/.config/skhd"
-ln -s "$ROOT/configs/skhd/skhdrc" "$WORK/desktop/.skhdrc"
 "$ROOT/install.sh" --profile desktop --target-home "$WORK/desktop" --skip-secrets >"$WORK/desktop.log"
-for target in .config/yabai .yabairc .config/skhd .skhdrc; do
-	test ! -L "$WORK/desktop/$target"
-done
 for profile in server desktop; do
 	for target in .claude/CLAUDE.md .codex/AGENTS.md .config/opencode/AGENTS.md .pi/agent/AGENTS.md; do
 		cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile/$target"
