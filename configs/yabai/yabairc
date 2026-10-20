@@ -1,8 +1,19 @@
 #!/usr/bin/env sh
 
+# the scripting addition needs sip disabled and a passwordless sudoers entry
+# for `yabai --load-sa`. under launchd there is no tty, so without both this
+# only produces sudo password errors - skip it cleanly instead.
+if csrutil status 2>/dev/null | grep -q "status: disabled"; then
+  sip_disabled=1
+else
+  sip_disabled=0
+fi
+
 # load scripting addition (required for space/window control)
-yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
-sudo yabai --load-sa
+if [ "$sip_disabled" -eq 1 ]; then
+  yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+  sudo yabai --load-sa
+fi
 
 # general settings
 yabai -m config layout bsp
@@ -24,8 +35,10 @@ yabai -m signal --add event=window_resized action="$padding_script window_resize
 yabai -m signal --add event=window_moved action="$padding_script window_moved"
 "$padding_script"
 
-# ensure 10 spaces exist (requires sip disabled for space creation)
-if command -v jq >/dev/null 2>&1; then
+# ensure 10 spaces exist (requires sip disabled for space creation).
+# with sip enabled every `space --create` fails, so create them manually in
+# mission control instead - see the window management section of the readme.
+if [ "$sip_disabled" -eq 1 ] && command -v jq >/dev/null 2>&1; then
   while [ "$(yabai -m query --spaces | jq 'length')" -lt 10 ]; do
     yabai -m space --create
   done
