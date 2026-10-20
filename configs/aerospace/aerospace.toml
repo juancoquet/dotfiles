@@ -1,0 +1,106 @@
+config-version = 2
+
+start-at-login = true
+auto-reload-config = true
+
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+persistent-workspaces = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+
+gaps.inner.horizontal = 4
+gaps.inner.vertical = 4
+gaps.outer.left = 4
+gaps.outer.bottom = 4
+gaps.outer.top = 4
+gaps.outer.right = 4
+
+[mode.main.binding]
+# focus workspace
+shift-ctrl-1 = 'workspace 1'
+shift-ctrl-2 = 'workspace 2'
+shift-ctrl-3 = 'workspace 3'
+shift-ctrl-4 = 'workspace 4'
+shift-ctrl-5 = 'workspace 5'
+shift-ctrl-6 = 'workspace 6'
+shift-ctrl-7 = 'workspace 7'
+shift-ctrl-8 = 'workspace 8'
+shift-ctrl-9 = 'workspace 9'
+shift-ctrl-0 = 'workspace 10'
+
+# home row -> focus workspace, matching karabiner's layer1 home-row-to-digit map.
+# karabiner only produces digits while right cmd is held; bind the letters
+# directly so they also work where the karabiner driver cannot load.
+shift-ctrl-a = 'workspace 1'
+shift-ctrl-s = 'workspace 2'
+shift-ctrl-d = 'workspace 3'
+shift-ctrl-f = 'workspace 4'
+shift-ctrl-g = 'workspace 5'
+shift-ctrl-h = 'workspace 6'
+shift-ctrl-j = 'workspace 7'
+shift-ctrl-k = 'workspace 8'
+shift-ctrl-l = 'workspace 9'
+shift-ctrl-semicolon = 'workspace 10'
+
+# send window to workspace + follow
+shift-ctrl-cmd-1 = 'move-node-to-workspace --focus-follows-window 1'
+shift-ctrl-cmd-2 = 'move-node-to-workspace --focus-follows-window 2'
+shift-ctrl-cmd-3 = 'move-node-to-workspace --focus-follows-window 3'
+shift-ctrl-cmd-4 = 'move-node-to-workspace --focus-follows-window 4'
+shift-ctrl-cmd-5 = 'move-node-to-workspace --focus-follows-window 5'
+shift-ctrl-cmd-6 = 'move-node-to-workspace --focus-follows-window 6'
+shift-ctrl-cmd-7 = 'move-node-to-workspace --focus-follows-window 7'
+shift-ctrl-cmd-8 = 'move-node-to-workspace --focus-follows-window 8'
+shift-ctrl-cmd-9 = 'move-node-to-workspace --focus-follows-window 9'
+shift-ctrl-cmd-0 = 'move-node-to-workspace --focus-follows-window 10'
+
+# toggle layout (tiles <-> accordion)
+shift-ctrl-tab = 'layout tiles accordion'
+
+# reorder windows (swap)
+shift-ctrl-cmd-j = 'swap dfs-next'
+shift-ctrl-cmd-k = 'swap dfs-prev'
+
+# toggle window management on/off
+shift-ctrl-cmd-y = 'enable toggle'
+
+# app -> workspace
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 1'
+
+[[on-window-detected]]
+if.app-id = 'us.zoom.xos'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.iCal'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.tinyspeck.slackmacgap'
+run = 'move-node-to-workspace 4'
+
+[[on-window-detected]]
+if.app-id = 'app.zen-browser.zen'
+run = 'move-node-to-workspace 7'
+
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'org.mozilla.firefoxdeveloperedition'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'com.google.Chrome'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-id = 'notion.id'
+run = 'move-node-to-workspace 10'

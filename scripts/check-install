@@ -22,7 +22,7 @@ test "$(readlink "$WORK/server/.config/nvim")" = "$ROOT/configs/nvim"
 for target in .claude/CLAUDE.md .claude/settings.json .codex/config.toml .cursor/mcp.json .cursor/skills .config/opencode/opencode.json .pi/agent/agents/branch-reviewer.md .pi/agent/extensions/code-comments.ts; do
 	test -s "$WORK/server/$target" || test -d "$WORK/server/$target"
 done
-for target in .config/ghostty .config/yabai .config/skhd .yabairc .skhdrc .vscodevimrc Library .config/dotfiles/secrets.env; do
+for target in .config/ghostty .config/aerospace .vscodevimrc Library .config/dotfiles/secrets.env; do
 	test ! -e "$WORK/server/$target"
 done
 "$ROOT/scripts/python" - "$WORK/server" <<'PY'
@@ -38,7 +38,15 @@ cursor = json.loads((root / ".cursor/mcp.json").read_text())
 assert cursor["mcpServers"]["context7"]["command"] == str(root / ".config/dotfiles/bin/context7-mcp")
 PY
 
+mkdir -p "$WORK/desktop/.config"
+ln -s "$ROOT/configs/yabai" "$WORK/desktop/.config/yabai"
+ln -s "$ROOT/configs/yabai/yabairc" "$WORK/desktop/.yabairc"
+ln -s "$ROOT/configs/skhd" "$WORK/desktop/.config/skhd"
+ln -s "$ROOT/configs/skhd/skhdrc" "$WORK/desktop/.skhdrc"
 "$ROOT/install.sh" --profile desktop --target-home "$WORK/desktop" --skip-secrets >"$WORK/desktop.log"
+for target in .config/yabai .yabairc .config/skhd .skhdrc; do
+	test ! -L "$WORK/desktop/$target"
+done
 for profile in server desktop; do
 	for target in .claude/CLAUDE.md .codex/AGENTS.md .config/opencode/AGENTS.md .pi/agent/AGENTS.md; do
 		cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile/$target"
@@ -46,7 +54,7 @@ for profile in server desktop; do
 	tail -n +6 "$WORK/$profile/.cursor/rules/global-agent-instructions.mdc" >"$WORK/$profile-cursor-instructions.md"
 	cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile-cursor-instructions.md"
 done
-for target in .config/ghostty .config/yabai .config/skhd .yabairc .skhdrc .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
+for target in .config/ghostty .config/aerospace/aerospace.toml .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
 	test -e "$WORK/desktop/$target"
 done
 echo 'Server/desktop installation and repeat-install checks passed'

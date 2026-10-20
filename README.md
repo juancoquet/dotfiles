@@ -28,7 +28,7 @@ suffix before linking the managed replacements.
 
 On Linux, the default `server` profile installs the shell, prompt, tmux, full
 Neovim configuration and **all** agent configurations. It omits Ghostty's GUI
-config, yabai, skhd, VSCodeVim and the macOS notification sound. On macOS the
+config, AeroSpace, VSCodeVim and the macOS notification sound. On macOS the
 default `desktop` profile keeps those desktop targets. You can choose explicitly:
 
 ```bash
@@ -117,53 +117,35 @@ brew install yqrashawn/goku/goku
 - make a profile in karabiner named `Default`
 - run `GOKU_EDN_CONFIG_FILE="$HOME/dotfiles/configs/karabiner.edn" goku`
 
-### window management (yabai)
+### window management (aerospace)
 
-- install yabai + skhd
+[aerospace](https://github.com/nikitabobko/AeroSpace) tiles windows and
+provides its own workspaces and keybindings. it works with sip enabled.
 
-```
-brew install koekeishiya/formulae/yabai koekeishiya/formulae/skhd jq
-```
-
-- enable services
+- install aerospace
 
 ```
-yabai --start-service
-skhd --start-service
+brew install --cask nikitabobko/tap/aerospace
 ```
 
-- disable sip (required for scripting addition and move-to-space rules)
-  - shut down, hold power until “options” appears, open recovery
-  - in recovery: utilities -> terminal, then run `csrutil disable`
-  - reboot normally
-  - to re-enable later, repeat and run `csrutil enable`
-
-- set nvram boot arg (required on apple silicon for scripting addition)
-
-```
-sudo nvram boot-args=-arm64e_preview_abi
-```
-
-  - reboot after setting this
-
-- install scripting addition for space/window control (required for move-to-space rules)
-  - add sudoers entry so yabai can load the scripting addition without a password:
+- `./install.sh` symlinks `configs/aerospace` -> `~/.config/aerospace`
+- open aerospace once and grant it accessibility access when prompted. the
+  config sets `start-at-login`, so it starts on its own after that
+- aerospace workspaces replace macos spaces. keep a single macos desktop and
+  remove any others in mission control
+- recommended by aerospace for multi-monitor stability: disable "displays have
+  separate spaces" (log out to apply)
 
 ```
-echo “$(whoami) ALL=(root) NOPASSWD: sha256:$(shasum -a 256 $(which yabai) | cut -d “ “ -f 1) $(which yabai) --load-sa” | sudo tee /private/etc/sudoers.d/yabai
+defaults write com.apple.spaces spans-displays -bool true && killall SystemUIServer
 ```
 
-  - note: re-run this after every yabai update (the hash changes)
+- recommended by aerospace so mission control shows hidden windows at a usable
+  size: enable "group windows by application"
 
-- `./install.sh` symlinks `configs/yabai` -> `~/.config/yabai` and
-  `~/.yabairc`, and `configs/skhd` -> `~/.config/skhd` and `~/.skhdrc`
-
-- disable space reordering in macos
-  - system settings -> desktop & dock -> disable "automatically rearrange spaces based on most recent use"
-
-- ensure there are 10 spaces
-  - yabai can create spaces with `yabai -m space --create` (requires sip disabled)
-  - if sip stays enabled, create 10 spaces manually and keep that setting disabled
+```
+defaults write com.apple.dock expose-group-apps -bool true && killall Dock
+```
 
 ### terminal
 

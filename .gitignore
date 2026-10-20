@@ -4,6 +4,3 @@ node_modules/
 
 # tmux plugins are installed locally via tpm, not vendored
 configs/tmux/plugins/
-
-# runtime state written by yabai scripts, not config
-configs/yabai/.ghostty-width-mode

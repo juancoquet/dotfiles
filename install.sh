@@ -145,12 +145,13 @@ echo "merged managed MCP servers into $TARGET_HOME/.claude.json"
 link_managed "$GENERATED_AGENTS/codex/config.toml" "$TARGET_HOME/.codex/config.toml"
 
 if [ "$PROFILE" = desktop ]; then
-	link configs/skhd "$TARGET_HOME/.config/skhd"
-	link configs/skhd/skhdrc "$TARGET_HOME/.skhdrc"
+	link configs/aerospace "$TARGET_HOME/.config/aerospace"
 	link configs/vscode/.vscodevimrc "$TARGET_HOME/.vscodevimrc"
-	link configs/yabai "$TARGET_HOME/.config/yabai"
-	link configs/yabai/yabairc "$TARGET_HOME/.yabairc"
 fi
+remove_managed_link "$TARGET_HOME/.config/skhd" "$DOTFILES_DIR/configs/skhd"
+remove_managed_link "$TARGET_HOME/.skhdrc" "$DOTFILES_DIR/configs/skhd/skhdrc"
+remove_managed_link "$TARGET_HOME/.config/yabai" "$DOTFILES_DIR/configs/yabai"
+remove_managed_link "$TARGET_HOME/.yabairc" "$DOTFILES_DIR/configs/yabai/yabairc"
 link configs/starship/starship.toml "$TARGET_HOME/.config/starship.toml"
 link configs/starship/.hushlogin    "$TARGET_HOME/.hushlogin"
 link configs/tmux             "$TARGET_HOME/.config/tmux"
