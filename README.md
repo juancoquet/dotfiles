@@ -67,14 +67,15 @@ GUI and fonts on your local machine. Inside tmux, the managed configuration uses
 Run the checks on Linux:
 
 ```bash
-scripts/check-python && scripts/check-install && scripts/check-shell && scripts/check-tmux && configs/agents/scripts/check
+scripts/check-python && scripts/check-install && scripts/check-shell && scripts/check-tmux && scripts/check-hammerspoon && configs/agents/scripts/check
 ```
 
 The installation check uses `--target-home /absolute/temporary/path` and
 `--skip-secrets`, preserving your real home directory. It verifies both profiles,
 repeat installation, backups and unrelated harness runtime state. The tmux check
-uses its own disposable server. The shell check needs Zsh; the agent check needs
-ripgrep and reports a skip if Context7 credentials are unavailable.
+uses its own disposable server. The shell check needs Zsh; the Hammerspoon check
+runs the keyboard remapping logic under Neovim; the agent check needs ripgrep and
+reports a skip if Context7 credentials are unavailable.
 
 ## secrets
 
@@ -107,15 +108,27 @@ these files are not licensed for reuse or redistribution by this repository.
 
 ### keyboard
 
-- install [karabiner](https://karabiner-elements.pqrs.org/).
-- install [goku](https://github.com/yqrashawn/GokuRakuJoudo).
+[hammerspoon](https://www.hammerspoon.org/) and macos' built-in `hidutil`
+remap every keyboard except the corne, whose firmware already does the same.
+neither needs a driver or system extension.
+
+- install hammerspoon
 
 ```
-brew install yqrashawn/goku/goku
+brew install --cask hammerspoon
 ```
 
-- make a profile in karabiner named `Default`
-- run `GOKU_EDN_CONFIG_FILE="$HOME/dotfiles/configs/karabiner.edn" goku`
+- `./install.sh` symlinks `configs/hammerspoon` -> `~/.hammerspoon`
+- open hammerspoon once and grant it accessibility access when prompted. the
+  config sets it to launch at login
+- edit mappings in `configs/hammerspoon/keymap.lua`, then choose "reload
+  config" from the hammerspoon menu bar icon
+- caps lock: esc on tap, ctrl on hold. quote: quote on tap, ctrl on hold
+- right command held: symbol and number layer on the letter keys
+- esc -> caps lock, `[` -> `/`, `/` -> backspace, `` ` `` -> `=`
+- eject locks the screen
+- limits: the tap/hold keys and the layer do not work in password fields (the
+  plain remaps do), and a tap sends its key on release
 
 ### window management (aerospace)
 

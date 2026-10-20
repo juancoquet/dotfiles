@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/dotfiles-hammerspoon-check.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+cat >"$WORK/check.lua" <<'LUA'
+package.path = arg[1] .. "/?.lua;" .. package.path
+local remap = require("remap")
+local keymap = require("keymap")
+
+local function same(actual, expected, path)
+	path = path or "result"
+	if type(expected) ~= "table" then
+		assert(actual == expected, path .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
+		return
+	end
+	assert(type(actual) == "table", path .. ": expected a table, got " .. tostring(actual))
+	for k, v in pairs(expected) do same(actual[k], v, path .. "." .. tostring(k)) end
+	for k in pairs(actual) do assert(expected[k] ~= nil, path .. ": unexpected key " .. tostring(k)) end
+end
+
+local fixture = {
+	tapTimeout = 0.2,
+	tapHold = { f18 = { tap = "escape", hold = "ctrl" } },
+	layers = { f19 = { a = "1", q = "shift+1" } },
+}
+local function engine() return remap.new(fixture) end
+local function key(kind, name, time, flags) return { kind = kind, key = name, time = time or 0, flags = flags or {} } end
+local drop = { action = "replace", emit = {} }
+local pass = { action = "pass" }
+
+-- every configured name resolves
+remap.new(keymap)
+remap.hidutilMapping(keymap.hidutil)
+
+same(remap.hidutilMapping({ caps_lock = "f18", escape = "caps_lock" }),
+	'{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771129,"HIDKeyboardModifierMappingDst":30064771181},'
+	.. '{"HIDKeyboardModifierMappingSrc":30064771113,"HIDKeyboardModifierMappingDst":30064771129}]}')
+assert(not pcall(remap.hidutilMapping, { caps_lock = "nope" }), "unknown hidutil key must fail")
+
+local e = engine()
+same(e:handle(key("keyDown", "f18", 0)), drop)
+same(e:handle(key("keyUp", "f18", 0.1, { shift = true })), { action = "replace", emit = {
+	{ key = "escape", flags = { shift = true }, down = true },
+	{ key = "escape", flags = { shift = true }, down = false },
+} })
+
+e = engine()
+e:handle(key("keyDown", "f18", 0))
+same(e:handle(key("keyDown", "f18", 0.15)), drop)
+same(e:handle(key("keyUp", "f18", 0.25)), drop)
+
+e = engine()
+e:handle(key("keyDown", "f18", 0))
+same(e:handle(key("keyDown", "c", 0.05, { shift = true })), { action = "modify", flags = { ctrl = true, shift = true } })
+same(e:handle(key("keyUp", "c", 0.06)), { action = "modify", flags = { ctrl = true } })
+same(e:handle(key("keyUp", "f18", 0.1)), drop)
+same(e:handle(key("keyDown", "c", 0.2)), pass)
+
+e = engine()
+e:handle(key("keyDown", "f18", 0))
+same(e:handle({ kind = "mouseDown", time = 0.05, flags = {} }), { action = "modify", flags = { ctrl = true } })
+same(e:handle(key("keyUp", "f18", 0.1)), drop)
+
+e = engine()
+same(e:handle(key("keyDown", "f19")), drop)
+same(e:handle(key("keyDown", "q")), { action = "replace", emit = { { key = "1", flags = { shift = true }, down = true } } })
+same(e:handle(key("keyDown", "p")), pass)
+e:handle(key("keyDown", "a"))
+same(e:handle(key("keyUp", "f19")), drop)
+same(e:handle(key("keyUp", "a")), { action = "replace", emit = { { key = "1", flags = {}, down = false } } })
+same(e:handle(key("keyDown", "a")), pass)
+
+e = engine()
+e:handle(key("keyDown", "f18", 0))
+e:handle(key("keyDown", "f19", 0))
+same(e:handle(key("keyDown", "a", 0.05, { shift = true })),
+	{ action = "replace", emit = { { key = "1", flags = { ctrl = true, shift = true }, down = true } } })
+same(e:handle(key("keyUp", "f18", 0.1)), drop)
+LUA
+
+nvim -l "$WORK/check.lua" "$ROOT/configs/hammerspoon"
+echo 'Hammerspoon remap checks passed'

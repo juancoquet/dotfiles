@@ -22,7 +22,7 @@ test "$(readlink "$WORK/server/.config/nvim")" = "$ROOT/configs/nvim"
 for target in .claude/CLAUDE.md .claude/settings.json .codex/config.toml .cursor/mcp.json .cursor/skills .config/opencode/opencode.json .pi/agent/agents/branch-reviewer.md .pi/agent/extensions/code-comments.ts; do
 	test -s "$WORK/server/$target" || test -d "$WORK/server/$target"
 done
-for target in .config/ghostty .config/aerospace .vscodevimrc Library .config/dotfiles/secrets.env; do
+for target in .config/ghostty .config/aerospace .hammerspoon .vscodevimrc Library .config/dotfiles/secrets.env; do
 	test ! -e "$WORK/server/$target"
 done
 "$ROOT/scripts/python" - "$WORK/server" <<'PY'
@@ -46,7 +46,7 @@ for profile in server desktop; do
 	tail -n +6 "$WORK/$profile/.cursor/rules/global-agent-instructions.mdc" >"$WORK/$profile-cursor-instructions.md"
 	cmp "$ROOT/configs/agents/AGENTS.md" "$WORK/$profile-cursor-instructions.md"
 done
-for target in .config/ghostty .config/aerospace/aerospace.toml .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
+for target in .config/ghostty .config/aerospace/aerospace.toml .hammerspoon/init.lua .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
 	test -e "$WORK/desktop/$target"
 done
 echo 'Server/desktop installation and repeat-install checks passed'

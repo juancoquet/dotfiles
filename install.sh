@@ -146,6 +146,7 @@ link_managed "$GENERATED_AGENTS/codex/config.toml" "$TARGET_HOME/.codex/config.t
 
 if [ "$PROFILE" = desktop ]; then
 	link configs/aerospace "$TARGET_HOME/.config/aerospace"
+	link configs/hammerspoon "$TARGET_HOME/.hammerspoon"
 	link configs/vscode/.vscodevimrc "$TARGET_HOME/.vscodevimrc"
 fi
 link configs/starship/starship.toml "$TARGET_HOME/.config/starship.toml"
@@ -153,9 +154,6 @@ link configs/starship/.hushlogin    "$TARGET_HOME/.hushlogin"
 link configs/tmux             "$TARGET_HOME/.config/tmux"
 link configs/zshrc            "$TARGET_HOME/.zshrc"
 link configs/zshenv           "$TARGET_HOME/.zshenv"
-
-# karabiner.edn isn't symlinked - goku reads it directly via
-# GOKU_EDN_CONFIG_FILE, see README.
 
 if [ "$SKIP_SECRETS" = true ]; then
 	echo "secrets decryption skipped"
