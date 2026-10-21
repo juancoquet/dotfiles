@@ -8,12 +8,14 @@ return {
 	},
 
 	-- applied below the event tap, so these also work in secure input fields.
-	-- caps lock, quote and right command become f17-f19, which no keyboard
+	-- caps lock, quote and both command keys become f17-f20, which no keyboard
 	-- sends, so tapHold and layers only fire on keyboards hidutil remaps.
 	hidutil = {
 		caps_lock = "f18",
 		quote = "f17",
 		right_command = "f19",
+		left_command = "f20",
+		left_option = "left_command",
 		escape = "caps_lock",
 		open_bracket = "slash",
 		slash = "backspace",
@@ -36,6 +38,12 @@ return {
 			h = "6", j = "7", k = "8", l = "9", [";"] = "0",
 			z = "`", x = "[", c = "shift+[", v = "shift+9", b = "\\",
 			n = "shift+\\", m = "shift+0", [","] = "shift+]", ["."] = "]",
+		},
+		-- aerospace workspace bindings. held keys are added to the output, so
+		-- also holding command (left option) moves the window there instead.
+		f20 = {
+			a = "shift+ctrl+1", s = "shift+ctrl+2", d = "shift+ctrl+3", f = "shift+ctrl+4", g = "shift+ctrl+5",
+			h = "shift+ctrl+6", j = "shift+ctrl+7", k = "shift+ctrl+8", l = "shift+ctrl+9", [";"] = "shift+ctrl+0",
 		},
 	},
 }

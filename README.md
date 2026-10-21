@@ -125,6 +125,9 @@ brew install --cask hammerspoon
   config" from the hammerspoon menu bar icon
 - caps lock: esc on tap, ctrl on hold. quote: quote on tap, ctrl on hold
 - right command held: symbol and number layer on the letter keys
+- left command held: home row `a`-`;` switches to aerospace workspaces 1-10;
+  also holding command moves the focused window there
+- left option is the only command key
 - esc -> caps lock, `[` -> `/`, `/` -> backspace, `` ` `` -> `=`
 - eject locks the screen
 - limits: the tap/hold keys and the layer do not work in password fields (the

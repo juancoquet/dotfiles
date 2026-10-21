@@ -23,7 +23,7 @@ end
 local fixture = {
 	tapTimeout = 0.2,
 	tapHold = { f18 = { tap = "escape", hold = "ctrl" } },
-	layers = { f19 = { a = "1", q = "shift+1" } },
+	layers = { f19 = { a = "1", q = "shift+1" }, f20 = { a = "shift+ctrl+1" } },
 }
 local function engine() return remap.new(fixture) end
 local function key(kind, name, time, flags) return { kind = kind, key = name, time = time or 0, flags = flags or {} } end
@@ -71,6 +71,13 @@ e:handle(key("keyDown", "a"))
 same(e:handle(key("keyUp", "f19")), drop)
 same(e:handle(key("keyUp", "a")), { action = "replace", emit = { { key = "1", flags = {}, down = false } } })
 same(e:handle(key("keyDown", "a")), pass)
+
+e = engine()
+e:handle(key("keyDown", "f19"))
+e:handle(key("keyDown", "f20"))
+same(e:handle(key("keyUp", "f19")), drop)
+same(e:handle(key("keyDown", "a", 0, { cmd = true })),
+	{ action = "replace", emit = { { key = "1", flags = { cmd = true, ctrl = true, shift = true }, down = true } } })
 
 e = engine()
 e:handle(key("keyDown", "f18", 0))
