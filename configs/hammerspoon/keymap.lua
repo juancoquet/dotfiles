@@ -44,7 +44,9 @@ return {
 
 	tapHold = {
 		f18 = { tap = "escape", hold = "ctrl" },
-		f17 = { tap = "'", hold = "ctrl" },
+		-- `shift` is the character a shifted tap types. the shifted key event
+		-- otherwise carries no character.
+		f17 = { tap = "'", shift = '"', hold = "ctrl" },
 	},
 
 	-- the wave's del key locks the screen. hidutil turns it into f16 on that

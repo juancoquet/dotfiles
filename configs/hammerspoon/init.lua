@@ -78,6 +78,7 @@ keyboard.tap = hs.eventtap.new(tapped, function(event)
 		local events = {}
 		for _, emit in ipairs(result.emit) do
 			local out = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
+			if emit.text then out:setUnicodeString(emit.text) end
 			out:setProperty(props.eventSourceUserData, SYNTHETIC)
 			events[#events + 1] = out
 		end

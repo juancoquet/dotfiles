@@ -97,9 +97,11 @@ function Engine:tapHoldKey(ev, tapHold, down)
 	self.held[ev.key] = nil
 	if not state or state.used or ev.time - state.since > self.tapTimeout then return drop() end
 	local flags = union(ev.flags, self:holdMods())
+	-- a shifted replacement has no character of its own, so the text is set explicitly
+	local text = flags.shift and tapHold.shift or nil
 	return { action = "replace", emit = {
-		{ key = tapHold.tap, flags = flags, down = true },
-		{ key = tapHold.tap, flags = flags, down = false },
+		{ key = tapHold.tap, flags = flags, down = true, text = text },
+		{ key = tapHold.tap, flags = flags, down = false, text = text },
 	} }
 end
 

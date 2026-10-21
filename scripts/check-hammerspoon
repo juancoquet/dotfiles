@@ -48,6 +48,17 @@ same(remap.hidutilMapping({ caps_lock = "f18", escape = "caps_lock" }),
 	.. '{"HIDKeyboardModifierMappingSrc":30064771113,"HIDKeyboardModifierMappingDst":30064771129}]}')
 assert(not pcall(remap.hidutilMapping, { caps_lock = "nope" }), "unknown hidutil key must fail")
 
+local quoted = { action = "replace", emit = {
+	{ key = "'", flags = { shift = true }, down = true, text = '"' },
+	{ key = "'", flags = { shift = true }, down = false, text = '"' },
+} }
+local quote = remap.new({ tapTimeout = 0.2, tapHold = { f17 = { tap = "'", shift = '"', hold = "ctrl" } } })
+same(quote:handle(key("keyDown", "f17", 0, { shift = true })), drop)
+same(quote:handle(key("keyUp", "f17", 0.1, { shift = true })), quoted)
+quote = remap.new({ tapTimeout = 0.2, tapHold = { f17 = { tap = "'", shift = '"', hold = "ctrl" } } })
+same(quote:handle(key("keyDown", "f17", 0)), drop)
+same(quote:handle(key("keyUp", "f17", 0.1, { shift = true })), quoted)
+
 local e = engine()
 same(e:handle(key("keyDown", "f18", 0)), drop)
 same(e:handle(key("keyUp", "f18", 0.1, { shift = true })), { action = "replace", emit = {
