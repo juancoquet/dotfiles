@@ -137,7 +137,8 @@ brew install --cask hammerspoon
   also holding command moves the focused window there
 - left option is the only command key
 - esc -> caps lock, `[` -> `/`, `/` -> backspace, `` ` `` -> `=`
-- eject locks the screen
+- the logitech wave's del key locks the screen. forward delete on any other
+  keyboard still deletes
 - limits: the workspace layer and the tap/hold behaviour do not work in
   password fields. the symbol layer and the plain remaps do, and a tap sends
   its key on release. option plus a letter key no longer types the british

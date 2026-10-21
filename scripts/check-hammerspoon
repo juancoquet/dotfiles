@@ -36,6 +36,12 @@ remap.hidutilMapping(keymap.hidutil)
 assert(remap.hidutilMapping(keymap.hidutil):find(
 	'"HIDKeyboardModifierMappingSrc":30064771303,"HIDKeyboardModifierMappingDst":30064771302', 1, true),
 	"right command must become right option")
+local wave = {}
+for key, value in pairs(keymap.hidutil) do wave[key] = value end
+wave[keymap.lockScreen.keyboards[1].from] = keymap.lockScreen.key
+assert(remap.hidutilMapping(wave):find(
+	'"HIDKeyboardModifierMappingSrc":30064771148,"HIDKeyboardModifierMappingDst":30064771179', 1, true),
+	"the wave's forward delete must become f16")
 
 same(remap.hidutilMapping({ caps_lock = "f18", escape = "caps_lock" }),
 	'{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771129,"HIDKeyboardModifierMappingDst":30064771181},'

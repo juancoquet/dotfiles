@@ -47,6 +47,15 @@ return {
 		f17 = { tap = "'", hold = "ctrl" },
 	},
 
+	-- the wave's del key locks the screen. hidutil turns it into f16 on that
+	-- keyboard only, so forward delete on every other keyboard still deletes.
+	lockScreen = {
+		key = "f16",
+		keyboards = {
+			{ vendorID = 0x46d, productID = 0xb383, from = "forward_delete" }, -- logitech wave keys
+		},
+	},
+
 	layers = {
 		-- aerospace workspace bindings. held keys are added to the output, so
 		-- also holding command (left option) moves the window there instead.

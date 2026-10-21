@@ -16,11 +16,23 @@ local function clearHidutil()
 	hs.execute(HIDUTIL .. [[ property --set '{"UserKeyMapping":[]}']])
 end
 
+local function merged(extraFrom, extraTo)
+	local mapping = {}
+	for key, value in pairs(keymap.hidutil) do mapping[key] = value end
+	mapping[extraFrom] = extraTo
+	return mapping
+end
+
 local function applyHidutil()
 	hs.execute(string.format("%s property --set '%s'", HIDUTIL, remap.hidutilMapping(keymap.hidutil)))
 	for _, kb in ipairs(keymap.excludedKeyboards) do
 		hs.execute(string.format([[%s property --matching '{"VendorID":%d,"ProductID":%d}' --set '{"UserKeyMapping":[]}']],
 			HIDUTIL, kb.vendorID, kb.productID))
+	end
+	-- applied last, so it replaces the global mapping on these keyboards
+	for _, kb in ipairs(keymap.lockScreen.keyboards) do
+		hs.execute(string.format([[%s property --matching '{"VendorID":%d,"ProductID":%d}' --set '%s']],
+			HIDUTIL, kb.vendorID, kb.productID, remap.hidutilMapping(merged(kb.from, keymap.lockScreen.key))))
 	end
 end
 
@@ -53,6 +65,12 @@ keyboard.tap = hs.eventtap.new(tapped, function(event)
 	local kind = kinds[event:getType()]
 	local key
 	if kind == "keyDown" or kind == "keyUp" then key = hs.keycodes.map[event:getKeyCode()] end
+	if key == keymap.lockScreen.key then
+		if kind == "keyDown" and event:getProperty(props.keyboardEventAutorepeat) == 0 then
+			hs.caffeinate.lockScreen()
+		end
+		return true
+	end
 	local result = engine:handle({ kind = kind, key = key, flags = event:getFlags(), time = hs.timer.absoluteTime() / 1e9 })
 	if result.action == "modify" then
 		event:setFlags(result.flags)
@@ -66,13 +84,6 @@ keyboard.tap = hs.eventtap.new(tapped, function(event)
 		return true, events
 	end
 	return false
-end):start()
-
-keyboard.eject = hs.eventtap.new({ types.systemDefined }, function(event)
-	local key = event:systemKey()
-	if key.key ~= "EJECT" then return false end
-	if key.down then hs.caffeinate.lockScreen() end
-	return true
 end):start()
 
 -- hidutil turns caps lock, quote and right command into keys only the tap
