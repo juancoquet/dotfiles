@@ -31,8 +31,8 @@ shift-ctrl-8 = 'workspace 8'
 shift-ctrl-9 = 'workspace 9'
 shift-ctrl-0 = 'workspace 10'
 
-# home row -> focus workspace, matching the digits hammerspoon's right command
-# layer produces for these keys, so the layer is not needed to switch.
+# home row -> focus workspace, the same chords hammerspoon's left command
+# layer sends, so the layer is not needed to switch.
 shift-ctrl-a = 'workspace 1'
 shift-ctrl-s = 'workspace 2'
 shift-ctrl-d = 'workspace 3'

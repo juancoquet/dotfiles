@@ -17,6 +17,7 @@ local usages = {
 	open_bracket = 0x2F,
 	quote = 0x34,
 	right_command = 0xE7,
+	right_option = 0xE6,
 	slash = 0x38,
 }
 

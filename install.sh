@@ -148,6 +148,10 @@ if [ "$PROFILE" = desktop ]; then
 	link configs/aerospace "$TARGET_HOME/.config/aerospace"
 	link configs/hammerspoon "$TARGET_HOME/.hammerspoon"
 	link configs/vscode/.vscodevimrc "$TARGET_HOME/.vscodevimrc"
+	select_layout=""
+	[ "$TARGET_HOME" = "$HOME" ] && select_layout=--select
+	"$PYTHON" "$DOTFILES_DIR/configs/hammerspoon/keylayout.py" $select_layout \
+		"$TARGET_HOME/Library/Keyboard Layouts/British-Layers.keylayout"
 fi
 link configs/starship/starship.toml "$TARGET_HOME/.config/starship.toml"
 link configs/starship/.hushlogin    "$TARGET_HOME/.hushlogin"

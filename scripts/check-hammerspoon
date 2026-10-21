@@ -33,6 +33,9 @@ local pass = { action = "pass" }
 -- every configured name resolves
 remap.new(keymap)
 remap.hidutilMapping(keymap.hidutil)
+assert(remap.hidutilMapping(keymap.hidutil):find(
+	'"HIDKeyboardModifierMappingSrc":30064771303,"HIDKeyboardModifierMappingDst":30064771302', 1, true),
+	"right command must become right option")
 
 same(remap.hidutilMapping({ caps_lock = "f18", escape = "caps_lock" }),
 	'{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":30064771129,"HIDKeyboardModifierMappingDst":30064771181},'
@@ -88,4 +91,5 @@ same(e:handle(key("keyUp", "f18", 0.1)), drop)
 LUA
 
 nvim -l "$WORK/check.lua" "$ROOT/configs/hammerspoon"
+"$ROOT/scripts/python" "$ROOT/configs/hammerspoon/keylayout.py" --check "$WORK/British-Layers.keylayout"
 echo 'Hammerspoon remap checks passed'

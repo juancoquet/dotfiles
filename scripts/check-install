@@ -49,4 +49,11 @@ done
 for target in .config/ghostty .config/aerospace/aerospace.toml .hammerspoon/init.lua .vscodevimrc Library/Sounds/factorio-research-complete.aiff; do
 	test -e "$WORK/desktop/$target"
 done
+layout="$WORK/desktop/Library/Keyboard Layouts/British-Layers.keylayout"
+if [ "$(uname -s)" = Darwin ]; then
+	test -s "$layout"
+	grep -q 'Generated from configs/hammerspoon/keymap.lua' "$layout"
+else
+	test ! -e "$layout"
+fi
 echo 'Server/desktop installation and repeat-install checks passed'

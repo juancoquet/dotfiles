@@ -108,9 +108,11 @@ these files are not licensed for reuse or redistribution by this repository.
 
 ### keyboard
 
-[hammerspoon](https://www.hammerspoon.org/) and macos' built-in `hidutil`
-remap every keyboard except the corne, whose firmware already does the same.
-neither needs a driver or system extension.
+[hammerspoon](https://www.hammerspoon.org/), macos' built-in `hidutil` and a
+generated keyboard layout remap every keyboard except the corne, whose
+firmware already does the same. none of them needs a driver or system
+extension. the layout handles the symbol layer, so it works in password
+fields, where an event tap cannot.
 
 - install hammerspoon
 
@@ -118,20 +120,28 @@ neither needs a driver or system extension.
 brew install --cask hammerspoon
 ```
 
-- `./install.sh` symlinks `configs/hammerspoon` -> `~/.hammerspoon`
+- `./install.sh` symlinks `configs/hammerspoon` -> `~/.hammerspoon` and
+  generates `~/Library/Keyboard Layouts/British-Layers.keylayout` from
+  `keymap.lua`
 - open hammerspoon once and grant it accessibility access when prompted. the
   config sets it to launch at login
-- edit mappings in `configs/hammerspoon/keymap.lua`, then choose "reload
-  config" from the hammerspoon menu bar icon
+- select the "British Layers" input source in system settings -> keyboard ->
+  input sources, and remove "British". log out if the new source is not listed
+  yet. the symbol layer types nothing until this layout is selected
+- edit mappings in `configs/hammerspoon/keymap.lua`, then re-run `./install.sh`
+  and choose "reload config" from the hammerspoon menu bar icon
 - caps lock: esc on tap, ctrl on hold. quote: quote on tap, ctrl on hold
-- right command held: symbol and number layer on the letter keys
+- right command held: symbol and number layer on the letter keys. right option
+  does the same, because a layout cannot tell the two option keys apart
 - left command held: home row `a`-`;` switches to aerospace workspaces 1-10;
   also holding command moves the focused window there
 - left option is the only command key
 - esc -> caps lock, `[` -> `/`, `/` -> backspace, `` ` `` -> `=`
 - eject locks the screen
-- limits: the tap/hold keys and the layer do not work in password fields (the
-  plain remaps do), and a tap sends its key on release
+- limits: the workspace layer and the tap/hold behaviour do not work in
+  password fields. the symbol layer and the plain remaps do, and a tap sends
+  its key on release. option plus a letter key no longer types the british
+  accent character; it types the symbol layer
 
 ### window management (aerospace)
 
