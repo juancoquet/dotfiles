@@ -66,6 +66,14 @@ same(e:handle(key("keyUp", "f18", 0.1, { shift = true })), { action = "replace",
 	{ key = "escape", flags = { shift = true }, down = false },
 } })
 
+-- macOS flags every f-key press with fn; the tap key must not inherit it
+e = engine()
+same(e:handle(key("keyDown", "f18", 0, { fn = true })), drop)
+same(e:handle(key("keyUp", "f18", 0.1, { fn = true })), { action = "replace", emit = {
+	{ key = "escape", flags = {}, down = true },
+	{ key = "escape", flags = {}, down = false },
+} })
+
 e = engine()
 e:handle(key("keyDown", "f18", 0))
 same(e:handle(key("keyDown", "f18", 0.15)), drop)

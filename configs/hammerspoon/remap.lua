@@ -97,6 +97,8 @@ function Engine:tapHoldKey(ev, tapHold, down)
 	self.held[ev.key] = nil
 	if not state or state.used or ev.time - state.since > self.tapTimeout then return drop() end
 	local flags = union(ev.flags, self:holdMods())
+	-- macOS sets fn on every f-key event, and the tap key is not an f-key
+	flags.fn = nil
 	-- a shifted replacement has no character of its own, so the text is set explicitly
 	local text = flags.shift and tapHold.shift or nil
 	return { action = "replace", emit = {
