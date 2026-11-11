@@ -151,6 +151,14 @@ grep -q 'Find every child closed as `completed`' \
 	"$ROOT/skills/wayfinder/SKILL.md"
 grep -q 'Wayfinder map, do not implement the decision' \
 	"$ROOT/skills/prototype/SKILL.md"
+grep -q 'Work the tree in \*\*rounds\*\*' "$ROOT/skills/grill-me/SKILL.md"
+grep -q '## Context' "$ROOT/skills/grill-me/SKILL.md"
+grep -q '## Question' "$ROOT/skills/grill-me/SKILL.md"
+grep -q '## Recommendation' "$ROOT/skills/grill-me/SKILL.md"
+grep -q 'worded so "yes" accepts your recommended answer' \
+	"$ROOT/skills/grill-me/SKILL.md"
+grep -q 'single shareable HTML file' "$ROOT/skills/prototype/SKILL.md"
+grep -q '\$TMPDIR' "$ROOT/skills/handoff/SKILL.md"
 
 if rg -n -i '\bthe user\b' \
 	"$ROOT/skills/wayfinder" \

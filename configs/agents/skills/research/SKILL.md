@@ -6,10 +6,10 @@ description: Investigate a question against high-trust primary sources and captu
 # Research
 
 When you are coordinating my request, delegate the investigation to the
-`primary-source-researcher` subagent in the background. Give it the question,
-the repository context it needs, and any ticket or artifact contract that
-applies. Keep working
-while it reads, then relay its result when it arrives.
+`primary-source-researcher` subagent in the background. Start it with a fresh
+context window. Give it the question, the repository context it needs, and any
+ticket or artifact contract that applies. Keep working while it reads, then
+relay its result when it arrives.
 
 When you are the assigned researcher, do the investigation directly; do not
 delegate it again.
