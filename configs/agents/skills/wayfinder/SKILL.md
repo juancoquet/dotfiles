@@ -111,13 +111,14 @@ supply my side of it yourself.
 
 - **Research** (AFK): Read documentation, third-party APIs, or resources outside
   the current working directory to surface a fact a decision needs. Resolve it
-  with the `primary-source-researcher` subagent following `/research`.
+  with a `primary-source-researcher` subagent started in a fresh context window,
+  following `/research`. Push the throwaway branch and open no pull request.
 - **Prototype** (HITL): Raise the fidelity of the discussion with a cheap,
   concrete artifact to react to — an outline, rough take, stub, or UI or logic
   prototype via `/prototype`. Link the prototype as an asset. Use this when the
   key question is how something should look or behave.
-- **Grilling** (HITL): Use `/grill-me` and `/domain-modeling`, one question at a
-  time. This is the default.
+- **Grilling** (HITL): Use `/grill-me` and `/domain-modeling`, a round of
+  frontier questions at a time. This is the default.
 - **Task** (HITL or AFK): Do manual work that must happen before a decision can
   be made. Nothing remains to decide, prototype, or research, but the discussion
   is blocked until the work is done. Drive it alone where possible; otherwise
@@ -176,14 +177,17 @@ I invoke the skill with a loose idea.
    empty, and sketch the fog into Not yet specified.
 4. **Create every ticket you can specify now** as a child with `type:task`,
    `status:todo`, and one `wayfinder:<type>` label. Wire blocking edges in a
-   second pass after every issue has an identifier. Leave everything still
-   imprecise in Not yet specified.
+   second pass after every issue has an identifier, and write those
+   cross-references with real identifiers. A placeholder number auto-links to
+   an unrelated issue. Leave everything still imprecise in Not yet specified.
 5. **Fire the research subagents.** For every newly created research ticket on
    the frontier — never one that is blocked or already claimed — launch one
-   `primary-source-researcher` in parallel. Its assignment must tell it to:
+   `primary-source-researcher` with a fresh context window, in parallel. Its
+   assignment must tell it to:
    - confirm the ticket is still open, unblocked, and unclaimed, then assign it
      to me before researching and move it to `status:in-progress`;
-   - use an isolated worktree on a throwaway `research/<name>` branch;
+   - use an isolated worktree on a throwaway `research/<name>` branch, push
+     the branch, and open no pull request;
    - follow `/research`, save and commit one cited Markdown artifact;
    - post the answer and branch or commit link as the resolution comment;
    - close the ticket as `completed`;
