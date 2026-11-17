@@ -153,6 +153,7 @@ grep -q 'Wayfinder map, do not implement the decision' \
 	"$ROOT/skills/prototype/SKILL.md"
 
 if rg -n -i '\bthe user\b' \
+	"$ROOT/skills/adversarial-testing" \
 	"$ROOT/skills/wayfinder" \
 	"$ROOT/skills/research" \
 	"$ROOT/skills/prototype" \
