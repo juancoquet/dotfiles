@@ -19,7 +19,7 @@ test "$(cat "$WORK"/server/.claude/CLAUDE.md.pre-dotfiles.*)" = 'original instru
 test "$(cat "$WORK/server/.pi/agent/AGENTS.md")" = "$(cat "$ROOT/configs/agents/AGENTS.md")"
 test "$(cat "$WORK"/server/.pi/agent/AGENTS.md.pre-dotfiles.*)" = 'original Pi instructions'
 test "$(readlink "$WORK/server/.config/nvim")" = "$ROOT/configs/nvim"
-for target in .claude/CLAUDE.md .claude/settings.json .codex/config.toml .cursor/mcp.json .cursor/skills .config/opencode/opencode.json .pi/agent/agents/branch-reviewer.md .pi/agent/extensions/code-comments.ts; do
+for target in .claude/CLAUDE.md .claude/settings.json .codex/config.toml .cursor/mcp.json .cursor/skills .config/opencode/opencode.json .pi/agent/agents/primary-source-researcher.md .pi/agent/extensions/code-comments.ts; do
 	test -s "$WORK/server/$target" || test -d "$WORK/server/$target"
 done
 for target in .config/ghostty .config/aerospace .hammerspoon .vscodevimrc Library .config/dotfiles/secrets.env; do

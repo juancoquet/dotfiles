@@ -13,6 +13,8 @@ override a rule. Existing tests are not themselves an override.
   constraints owned by the project.
 - Prefer regression tests for real failures, boundary conversion, retry and
   failure propagation, side effects, and rendered or parsed output.
+- Use property-based tests for invariants over wide input spaces, such as
+  round trips, when the repository already has a tool for them.
 - Do not test behaviour supplied entirely by a framework, validation library,
   serializer, or static type checker unless the project changes that behaviour.
 - Do not add runtime tests for contracts static analysis already proves. Test

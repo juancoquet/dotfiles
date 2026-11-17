@@ -22,10 +22,9 @@ remote and include remote-branch cleanup in the candidate set, per step 5.
 
 ## 2. Resolve Repository Context
 
-Confirm this is a git repository. Determine the default/base branch the same
-way the `review` skill does: prefer `refs/remotes/origin/HEAD`, falling back
-to inspecting the repository for a conventional base (`main`, `master`,
-`development`). Note the current branch and current worktree path — never
+Confirm this is a git repository. Determine the default/base branch: prefer
+`refs/remotes/origin/HEAD`, falling back to inspecting the repository for a
+conventional base (`main`, `master`, `development`). Note the current branch and current worktree path — never
 touch either.
 
 ## 3. Find Stale Worktrees

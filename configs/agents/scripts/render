@@ -9,9 +9,6 @@ fi
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT="$1"
-REVIEW_SKILL="$ROOT/skills/review/SKILL.md"
-REVIEW_PREAMBLE="$ROOT/agents/branch-reviewer/preamble.md"
-REVIEW_OUTPUT_CONTRACT="$ROOT/agents/branch-reviewer/output.md"
 RESEARCH_SKILL="$ROOT/skills/research/SKILL.md"
 RESEARCH_PREAMBLE="$ROOT/agents/primary-source-researcher/preamble.md"
 RESEARCH_OUTPUT_CONTRACT="$ROOT/agents/primary-source-researcher/output.md"
@@ -38,17 +35,6 @@ mkdir -p \
 
 "$PYTHON" "$ROOT/scripts/render-mcp" "$ROOT" "$OUTPUT" "$CONTEXT7_COMMAND"
 
-REVIEW_BODY="$OUTPUT/branch-reviewer-body.md"
-cat "$REVIEW_PREAMBLE" >"$REVIEW_BODY"
-printf '\n' >>"$REVIEW_BODY"
-awk '
-	NR == 1 && $0 == "---" { in_frontmatter = 1; next }
-	in_frontmatter && $0 == "---" { in_frontmatter = 0; next }
-	!in_frontmatter { print }
-' "$REVIEW_SKILL" >>"$REVIEW_BODY"
-printf '\n' >>"$REVIEW_BODY"
-cat "$REVIEW_OUTPUT_CONTRACT" >>"$REVIEW_BODY"
-
 RESEARCH_BODY="$OUTPUT/primary-source-researcher-body.md"
 cat "$RESEARCH_PREAMBLE" >"$RESEARCH_BODY"
 printf '\n' >>"$RESEARCH_BODY"
@@ -59,61 +45,6 @@ awk '
 ' "$RESEARCH_SKILL" >>"$RESEARCH_BODY"
 printf '\n' >>"$RESEARCH_BODY"
 cat "$RESEARCH_OUTPUT_CONTRACT" >>"$RESEARCH_BODY"
-
-cat >"$OUTPUT/claude/agents/branch-reviewer.md" <<'EOF'
----
-name: branch-reviewer
-description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
-tools: Bash, Read, Grep, Glob
----
-
-EOF
-cat "$REVIEW_BODY" >>"$OUTPUT/claude/agents/branch-reviewer.md"
-
-cat >"$OUTPUT/opencode/agent/branch-reviewer.md" <<'EOF'
----
-description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
-mode: subagent
-permission:
-  edit: deny
----
-
-EOF
-cat "$REVIEW_BODY" >>"$OUTPUT/opencode/agent/branch-reviewer.md"
-
-cat >"$OUTPUT/cursor/agents/branch-reviewer.md" <<'EOF'
----
-name: branch-reviewer
-description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
-model: inherit
-readonly: true
----
-
-EOF
-cat "$REVIEW_BODY" >>"$OUTPUT/cursor/agents/branch-reviewer.md"
-
-cat >"$OUTPUT/pi/agents/branch-reviewer.md" <<'EOF'
----
-name: branch-reviewer
-description: Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review.
-tools: read, grep, find, ls, bash
-systemPromptMode: replace
-inheritProjectContext: true
-inheritSkills: true
-acceptanceRole: read-only
----
-
-EOF
-cat "$REVIEW_BODY" >>"$OUTPUT/pi/agents/branch-reviewer.md"
-
-cat >"$OUTPUT/codex/agents/branch-reviewer.toml" <<'EOF'
-name = "branch-reviewer"
-description = "Review the current branch and working tree against its base and return structured findings. Use for an independent, read-only code review."
-sandbox_mode = "read-only"
-developer_instructions = '''
-EOF
-cat "$REVIEW_BODY" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
-printf "\n'''\n" >>"$OUTPUT/codex/agents/branch-reviewer.toml"
 
 cat >"$OUTPUT/cursor/rules/global-agent-instructions.mdc" <<'EOF'
 ---
@@ -179,4 +110,4 @@ EOF
 cat "$RESEARCH_BODY" >>"$OUTPUT/codex/agents/primary-source-researcher.toml"
 printf "\n'''\n" >>"$OUTPUT/codex/agents/primary-source-researcher.toml"
 
-rm "$REVIEW_BODY" "$RESEARCH_BODY"
+rm "$RESEARCH_BODY"

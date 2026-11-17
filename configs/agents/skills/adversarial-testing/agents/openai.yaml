@@ -1,0 +1,5 @@
+interface:
+  display_name: "Adversarial Testing"
+  short_description: "Break code with edge-case tests and fix what fails"
+policy:
+  allow_implicit_invocation: false
