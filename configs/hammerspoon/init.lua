@@ -1,4 +1,5 @@
 local keymap = require("keymap")
+local promptvim = require("promptvim")
 local remap = require("remap")
 
 require("hs.ipc")
@@ -6,7 +7,7 @@ hs.autoLaunch(true)
 
 local HIDUTIL = "/usr/bin/hidutil"
 local KEYBOARDS = '{"PrimaryUsagePage":1,"PrimaryUsage":6}'
--- marks events posted below so the tap passes them through untouched
+-- Marks replacement events so the tap passes them through untouched.
 local SYNTHETIC = 0x6B6D6170
 
 local types = hs.eventtap.event.types
@@ -29,7 +30,6 @@ local function applyHidutil()
 		hs.execute(string.format([[%s property --matching '{"VendorID":%d,"ProductID":%d}' --set '{"UserKeyMapping":[]}']],
 			HIDUTIL, kb.vendorID, kb.productID))
 	end
-	-- applied last, so it replaces the global mapping on these keyboards
 	for _, kb in ipairs(keymap.lockScreen.keyboards) do
 		hs.execute(string.format([[%s property --matching '{"VendorID":%d,"ProductID":%d}' --set '%s']],
 			HIDUTIL, kb.vendorID, kb.productID, remap.hidutilMapping(merged(kb.from, keymap.lockScreen.key))))
@@ -57,10 +57,13 @@ end
 
 local engine = remap.new(keymap)
 
--- global: Hammerspoon garbage-collects taps and timers only held by locals
+-- Global: Hammerspoon garbage-collects taps and timers only held by locals.
 keyboard = {}
+promptvim.install(keyboard)
 
+keyboard.seen = 0
 keyboard.tap = hs.eventtap.new(tapped, function(event)
+	keyboard.seen = keyboard.seen + 1
 	if event:getProperty(props.eventSourceUserData) == SYNTHETIC then return false end
 	local kind = kinds[event:getType()]
 	local key
@@ -76,20 +79,38 @@ keyboard.tap = hs.eventtap.new(tapped, function(event)
 		event:setFlags(result.flags)
 	elseif result.action == "replace" then
 		for _, emit in ipairs(result.emit) do
-			local out = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
-			if emit.text then out:setUnicodeString(emit.text) end
-			out:post()
+			-- This tap does not observe events it posts, so prompt Vim has to see
+			-- the replacement before it is released to the rest of the system.
+			local emitKind = emit.down and "keyDown" or "keyUp"
+			local consumed = false
+			if keyboard.onPrompt then
+				local probe = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
+				if emit.text then probe:setUnicodeString(emit.text) end
+				local ok, swallow = pcall(keyboard.onPrompt, probe, emitKind)
+				consumed = ok and swallow
+			end
+			if not consumed then
+				local out = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
+				if emit.text then out:setUnicodeString(emit.text) end
+				out:post()
+			end
 		end
 		return true
+	end
+	if keyboard.onPrompt then
+		local ok, swallow = pcall(keyboard.onPrompt, event, kind)
+		if ok and swallow then return true end
 	end
 	return false
 end):start()
 
--- hidutil turns caps lock, quote and right command into keys only the tap
--- understands, so the mapping must only be active while the tap runs. the tap
--- cannot start without accessibility access, and macOS disables taps it
--- considers too slow.
 local function syncTap()
+	if keyboard.disabled then
+		if keyboard.tap:isEnabled() then keyboard.tap:stop() end
+		if keyboard.active ~= false then clearHidutil() end
+		keyboard.active = false
+		return
+	end
 	if not keyboard.tap:isEnabled() then keyboard.tap:start() end
 	local active = keyboard.tap:isEnabled()
 	if active == keyboard.active then return end
@@ -106,7 +127,6 @@ end
 
 syncTap()
 
--- a newly connected excluded keyboard picks up the global hidutil mapping
 keyboard.poll = hs.timer.doEvery(3, function()
 	syncTap()
 	if keyboard.list and keyboard.list:isRunning() then return end
@@ -116,5 +136,57 @@ keyboard.poll = hs.timer.doEvery(3, function()
 		keyboard.ids = ids
 	end, { "list", "--matching", KEYBOARDS }):start()
 end)
+
+local function updateMenu()
+	local title = "⌨"
+	local tip = "Typing remaps enabled"
+	if keyboard.disabled then
+		title = "⌨×"
+		tip = "Typing remaps disabled"
+	elseif keyboard.promptVim then
+		title = keyboard.promptMode == "normal" and "⌨ N" or "⌨ I"
+		tip = keyboard.promptMode == "normal" and "Prompt Vim: normal" or "Prompt Vim: insert"
+	end
+	keyboard.menu:setTitle(title)
+	keyboard.menu:setTooltip(tip)
+end
+
+function keyboard.refreshMenu()
+	if keyboard.menu then updateMenu() end
+end
+
+function keyboard.setPromptVim(enabled)
+	keyboard.promptVim = enabled and true or false
+	if not enabled and keyboard.resetPromptVim then keyboard.resetPromptVim() end
+	keyboard.refreshMenu()
+end
+
+function keyboard.setEnabled(enabled)
+	keyboard.disabled = not enabled
+	if enabled then engine = remap.new(keymap) end
+	syncTap()
+	updateMenu()
+end
+
+keyboard.menu = hs.menubar.new()
+keyboard.menu:setMenu(function()
+	if keyboard.disabled then
+		return {
+			{ title = "Typing remaps: Disabled", disabled = true },
+			{ title = "Enable typing remaps", fn = function() keyboard.setEnabled(true) end },
+		}
+	end
+	local vimItem = keyboard.promptVim
+		and { title = "Disable prompt Vim", fn = function() keyboard.setPromptVim(false) end }
+		or { title = "Enable prompt Vim", fn = function() keyboard.setPromptVim(true) end }
+	return {
+		{ title = "Typing remaps: Enabled", disabled = true },
+		{ title = "Disable typing remaps", fn = function() keyboard.setEnabled(false) end },
+		{ title = "-" },
+		{ title = keyboard.promptVim and "Prompt Vim: On" or "Prompt Vim: Off", disabled = true },
+		vimItem,
+	}
+end)
+updateMenu()
 
 hs.shutdownCallback = clearHidutil

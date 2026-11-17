@@ -113,6 +113,211 @@ e:handle(key("keyDown", "f19", 0))
 same(e:handle(key("keyDown", "a", 0.05, { shift = true })),
 	{ action = "replace", emit = { { key = "1", flags = { ctrl = true, shift = true }, down = true } } })
 same(e:handle(key("keyUp", "f18", 0.1)), drop)
+
+local vimmode = require("vimmode")
+local function typeKeys(text, caret, inputs)
+	local state = vimmode.fromInsert(text, caret)
+	local yank
+	for _, input in ipairs(inputs) do
+		local info
+		state, text, info = vimmode.feed(state, text, input)
+		if info and info.yank then yank = info.yank end
+	end
+	return text, state.mode, state.pos, yank
+end
+local function k(char, extra)
+	extra = extra or {}
+	extra.char = char
+	extra.key = char
+	return extra
+end
+
+same({ typeKeys("hello world", 1, { k("d"), k("w") }) }, { "world", "normal", 1, "hello " })
+same({ typeKeys("hello world", 1, { k("d"), k("e") }) }, { " world", "normal", 1, "hello" })
+same({ typeKeys("hello", 1, { k("x") }) }, { "ello", "normal", 1, "h" })
+same({ typeKeys("hello", 1, { k("D") }) }, { "", "normal", 1, "hello" })
+same({ typeKeys("ab\ncd\nef", 4, { k("d"), k("d") }) }, { "ab\nef", "normal", 4, "cd\n" })
+same({ typeKeys("say \"hi\" there", 7, { k("c"), k("i"), k('"') }) }, { "say \"\" there", "insert", 6, "hi" })
+same({ typeKeys("fn(name)", 5, { k("d"), k("a"), k(")") }) }, { "fn", "normal", 2, "(name)" })
+same({ typeKeys("one two", 1, { k("y"), k("w") }) }, { "one two", "normal", 1, "one " })
+same({ typeKeys("ab\ncd", 1, { { key = "v", char = "V" }, k("j"), k("d") }) }, { "", "normal", 1, "ab\ncd" })
+same({ typeKeys("ab\ncd", 1, { { key = "v", char = "v" }, k("j"), k("d") }) }, { "d", "normal", 1, "ab\nc" })
+same({ typeKeys("hello", 1, { k("y"), k("w"), { key = "p", char = "p", clipboard = "hello " } }) }, { "hhello ello", "normal", 2, "hell" })
+do
+	local text, mode, _, yank = typeKeys("ab\ncd\nef", 1, { { key = "v", char = "v", ctrl = true }, k("j"), k("d") })
+	assert(mode == "normal", "block delete stays normal")
+	assert(yank == "a\nc", "block yank columns, got " .. tostring(yank))
+	assert(text == "b\nd\nef", "block delete, got " .. text)
+end
+same({ typeKeys("hello world", 1, { k("d"), k("i"), k("w") }) }, { " world", "normal", 1, "hello" })
+same({ typeKeys("hello", 1, { k("2"), k("x") }) }, { "llo", "normal", 1, "he" })
+do
+	local text, mode, pos, yank = typeKeys("ab\ncd\nef", 1, { { key = "v", char = "v", ctrl = true }, k("j"), k("y") })
+	assert(text == "ab\ncd\nef" and mode == "normal" and yank == "a\nc", "block yank")
+	assert(pos == 1, "block yank leaves the cursor on the block, got " .. tostring(pos))
+end
+assert(vimmode.cursor("hello", 6).pos == 5, "a caret at the end sits on the last character")
+do
+	local block = vimmode.block("hello", 1)
+	assert(block[1] == 1 and block[2] == 2, "normal mode highlights one character")
+	assert(vimmode.block("a\nb", 2) == nil, "a line break has no block")
+end
+do
+	local text = "one two three"
+	local state = vimmode.fromInsert(text, 1)
+	local widget, anchor = 1, 1
+	local function step(source, pos, dir)
+		if dir < 0 then
+			if pos <= 1 then return 1 end
+			local j = pos - 1
+			while j > 1 and source:byte(j) >= 0x80 and source:byte(j) < 0xC0 do j = j - 1 end
+			return j
+		end
+		if pos > #source then return pos end
+		local b = source:byte(pos)
+		local n = 1
+		if b >= 0xF0 then n = 4 elseif b >= 0xE0 then n = 3 elseif b >= 0xC0 then n = 2 end
+		return pos + n
+	end
+	-- The first unshifted arrow on a selection collapses it. Left collapses to
+	-- the start of the highlight; right stays where the caret already is.
+	local function applyPrompt(source, moves)
+		local collapsed = widget == anchor
+		for _, move in ipairs(moves) do
+			local dir = move.key == "right" and 1 or -1
+			for _ = 1, move.count do
+				if not collapsed and not move.shift then
+					if move.key == "left" then widget = anchor end
+					collapsed = true
+					anchor = widget
+				else
+					local before = widget
+					widget = step(source, widget, dir)
+					if collapsed and move.shift then anchor = before end
+					collapsed = not move.shift
+					if not move.shift then anchor = widget end
+				end
+			end
+		end
+	end
+	local function show(char)
+		local info
+		if char then state, text, info = vimmode.feed(state, text, { key = char, char = char }) end
+		local origin = anchor
+		local held = widget ~= anchor
+		local caret = info and info.caret or state.pos
+		local moves, place, selection = vimmode.planCaret(text, origin, caret, state.mode, info and info.select, held)
+		applyPrompt(text, moves)
+		assert(selection and selection[1] == state.pos, (char or "block") .. " highlighted " .. tostring(selection and selection[1]))
+		assert(widget == place and anchor == selection[1], (char or "block") .. " caret drifted to " .. widget)
+		return text:sub(selection[1], selection[1])
+	end
+	assert(show() == "o", "normal mode highlights the character under the cursor")
+	assert(show("w") == "t", "w lands on the next word")
+	assert(show("w") == "t", "w lands on the word after that")
+	assert(show("b") == "t", "b lands on the previous word")
+	assert(show("b") == "o", "b lands on the first word")
+	state = vimmode.cursor("hello world", 3)
+	text = "hello world"
+	local info
+	state, text, info = vimmode.feed(state, text, { key = "w", char = "w" })
+	assert(text:sub(state.pos, state.pos) == "w", "w from inside a word reaches the next word")
+	state, text, info = vimmode.feed(state, text, { key = "b", char = "b" })
+	assert(state.pos == 1, "b from the next word returns to the start of the word")
+	state = vimmode.cursor("hello world", 3)
+	state, text, info = vimmode.feed(state, "hello world", { key = "d", char = "d" })
+	state, text, info = vimmode.feed(state, text, { key = "i", char = "i" })
+	state, text, info = vimmode.feed(state, text, { key = "w", char = "w" })
+	assert(text == " world" and info.yank == "hello", "diw from inside a word takes the whole word, got " .. text)
+end
+do
+	local text = "  hello world"
+	local function at(pos, input)
+		local state = vimmode.cursor(text, pos)
+		local info
+		state, text, info = vimmode.feed(state, text, input)
+		return state, info
+	end
+	local shiftState = vimmode.cursor(text, 7)
+	local _, _, shiftInfo = vimmode.feed(shiftState, text, { key = "shift" })
+	assert(shiftInfo.pass and shiftState.pos == 7, "shift has to reach the system")
+	_, _, shiftInfo = vimmode.feed(shiftState, text, { key = "rightshift" })
+	assert(shiftInfo.pass, "right shift has to reach the system")
+	local state, info = at(7, { key = "0", char = "0" })
+	assert(state.pos == 1 and not info.pass, "0 goes to the first column, got " .. tostring(state.pos))
+	state, info = at(7, { key = "0" })
+	assert(state.pos == 1 and not info.pass, "0 with no character still goes to the first column")
+	state, info = at(7, { key = "pad0" })
+	assert(state.pos == 1 and not info.pass, "keypad 0 goes to the first column, pass " .. tostring(info.pass))
+	state, info = at(7, { key = "4", char = "4", shift = true })
+	assert(text:sub(state.pos, state.pos) == "d" and not info.pass, "shift-4 is the end of the line, got " .. text:sub(state.pos, state.pos))
+	state, info = at(7, { key = "6", shift = true })
+	assert(text:sub(state.pos, state.pos) == "h", "shift-6 is the first non-blank, got " .. text:sub(state.pos, state.pos))
+	state, info = at(7, { key = "-", char = "-", shift = true })
+	assert(text:sub(state.pos, state.pos) == "h", "shift-minus is the first non-blank, got " .. text:sub(state.pos, state.pos))
+	state, info = at(7, { key = "_", char = "_" })
+	assert(text:sub(state.pos, state.pos) == "h", "_ is the first non-blank, got " .. text:sub(state.pos, state.pos))
+	-- right command is option, and that layer types symbols as characters
+	state, info = at(7, { key = ";", char = "0", alt = true })
+	assert(state.pos == 1 and not info.pass, "option layer 0 goes to the first column, pass " .. tostring(info.pass))
+	state, info = at(7, { key = "r", char = "$", alt = true })
+	assert(text:sub(state.pos, state.pos) == "d" and not info.pass, "option layer $ is the end of the line")
+	state, info = at(7, { key = "y", char = "^", alt = true })
+	assert(text:sub(state.pos, state.pos) == "h" and not info.pass, "option layer ^ is the first non-blank")
+	state, info = at(7, { key = "left", char = "", alt = true })
+	assert(info.pass, "option with an arrow still reaches the app")
+	state, info = at(7, { key = "delete", char = "", alt = true })
+	assert(info.pass, "option with delete still reaches the app")
+	state, info = at(7, { key = "e", char = "", alt = true })
+	assert(info.pass, "option with no character still reaches the app")
+	state, info = at(7, { key = "r", char = "$", cmd = true })
+	assert(info.pass, "command still reaches the app")
+	state, info = at(7, { key = "padclear" })
+	assert(state.pos == 7 and not info.pass, "an unknown key in normal mode does nothing")
+	text = "  hello world"
+	state = vimmode.cursor("a\n  b\nc", 1)
+	state = select(1, vimmode.feed(state, "a\n  b\nc", { key = "2" }))
+	state = select(1, vimmode.feed(state, "a\n  b\nc", { key = "_" }))
+	assert(state.pos == 5, "2_ is the first non-blank of the next line, got " .. tostring(state.pos))
+	state = vimmode.cursor("a\n  b\nc", 5)
+	state = select(1, vimmode.feed(state, "a\n  b\nc", { key = "-" }))
+	assert(state.pos == 1, "- is the first non-blank of the previous line, got " .. tostring(state.pos))
+	local deleted, mode, pos = typeKeys("  ab\ncd", 3, { k("d"), { key = "_", char = "_" } })
+	assert(deleted == "cd" and mode == "normal", "d_ deletes the line, got " .. tostring(deleted) .. " (" .. tostring(mode) .. " at " .. tostring(pos) .. ")")
+	text = "  hello"
+	state = vimmode.cursor(text, 5)
+	state, info = vimmode.feed(state, text, { key = "0", char = "0" })
+	local _, _, selection = vimmode.planCaret(text, 5, state.pos, state.mode, nil, true)
+	assert(selection and selection[1] == 1, "0 highlights the first character")
+	state, info = vimmode.feed(vimmode.cursor(text, 5), text, { key = "$", char = "$" })
+	_, _, selection = vimmode.planCaret(text, 5, state.pos, state.mode, nil, true)
+	assert(selection and text:sub(selection[1], selection[1]) == "o", "end of line highlights the last character")
+end
+do
+	local function edited(old, new)
+		local pre, oldEnd, newEnd = vimmode.editSpan(old, new)
+		return old:sub(1, pre - 1) .. new:sub(pre, newEnd - 1) .. old:sub(oldEnd)
+	end
+	assert(edited("hello", "ello") == "ello", "delete the first character")
+	assert(edited("hello world", "world") == "world", "delete a word")
+	assert(edited("a👍b", "a👍c") == "a👍c", "edit after an emoji")
+	assert(edited("ab\ncd", "") == "", "clear the buffer")
+	assert(edited("", "ab") == "ab", "insert into an empty buffer")
+	local state = vimmode.fromInsert("hello", 1)
+	local _, text = vimmode.feed(state, "hello", { key = "x" })
+	assert(text == "ello", "a key with no character still deletes")
+end
+do
+	local moves, place = vimmode.retarget("a👍b", 7, 2, { 2, 6 })
+	assert(place == 6, "selection leaves the caret at its end")
+	assert(#moves == 2 and moves[1].key == "left" and moves[1].count == 2 and not moves[1].shift, "reach the emoji")
+	assert(moves[2].key == "right" and moves[2].count == 1 and moves[2].shift, "select the emoji in one step")
+end
+assert(vimmode.steps("a👍b", 1, 7) == 3, "arrows move one codepoint, including emoji")
+assert(vimmode.steps("a👍b", 7, 2) == -2, "left across emoji is one step")
+assert(vimmode.utf16ForByte("a👍b", 2) == 1, "emoji starts after one utf16 unit")
+assert(vimmode.byteForUtf16("a👍b", 1) == 2, "one utf16 unit is the emoji")
+assert(vimmode.utf16ForByte("a👍b", 6) == 3, "emoji is two utf16 units")
 LUA
 
 nvim -l "$WORK/check.lua" "$ROOT/configs/hammerspoon"
