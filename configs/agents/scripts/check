@@ -13,20 +13,15 @@ PYTHON="$DOTFILES/scripts/python"
 "$ROOT/trackers/gh-issues/check"
 
 expected=(
-	"claude/agents/branch-reviewer.md"
 	"claude/agents/primary-source-researcher.md"
 	"claude/mcp.json"
-	"codex/agents/branch-reviewer.toml"
 	"codex/agents/primary-source-researcher.toml"
 	"codex/config.toml"
-	"cursor/agents/branch-reviewer.md"
 	"cursor/agents/primary-source-researcher.md"
 	"cursor/mcp.json"
 	"cursor/rules/global-agent-instructions.mdc"
-	"opencode/agent/branch-reviewer.md"
 	"opencode/agent/primary-source-researcher.md"
 	"opencode/opencode.json"
-	"pi/agents/branch-reviewer.md"
 	"pi/agents/primary-source-researcher.md"
 )
 
@@ -75,8 +70,6 @@ config = tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
 paths = [value for value in strings(config) if value.startswith(("/", "~/"))]
 assert not paths, f"Codex source config contains machine-specific paths: {paths}"
 PY
-"$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
-	"$OUTPUT/codex/agents/branch-reviewer.toml"
 "$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
 	"$OUTPUT/codex/agents/primary-source-researcher.toml"
 "$PYTHON" -c 'import pathlib, sys, importlib; tomllib = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); tomllib.loads(pathlib.Path(sys.argv[1]).read_text())' \
@@ -131,10 +124,6 @@ assert set(destination["mcpServers"]) == {"context7", "linear", "unrelated"}
 assert state == {"managedServers": ["context7", "linear"]}
 PY
 
-grep -q 'Return only a JSON array' "$OUTPUT/claude/agents/branch-reviewer.md"
-grep -q 'do not assume that the repository defines a custom review skill' \
-	"$OUTPUT/opencode/agent/branch-reviewer.md"
-grep -q '^acceptanceRole: read-only$' "$OUTPUT/pi/agents/branch-reviewer.md"
 grep -q 'do not delegate to another agent' \
 	"$OUTPUT/claude/agents/primary-source-researcher.md"
 grep -q '^sandbox_mode = "workspace-write"$' \
