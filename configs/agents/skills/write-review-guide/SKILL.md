@@ -1,6 +1,6 @@
 ---
 name: write-review-guide
-description: Write a PR review guide — the changed files as an ordered list, in the order a reviewer should read them, with brief context. Callable by another skill, such as `pr-open`, or by me via `/write-review-guide`. Use when I ask for a review guide or reading order for a branch or PR.
+description: Write a PR review guide — the changed files as an ordered list, in the order a reviewer should read them, with brief context. Use when I ask for a review guide or reading order for a branch or PR.
 argument-hint: "[base-branch | pr-number]"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[base-branch | pr-number]"
 
 List the changed files against the given base (default branch otherwise) in
 the order that builds understanding: what others depend on first, tests and
-generated files last. Return the Markdown; never edit the PR yourself.
+generated files last.
 
 - One numbered entry per file, with a few words of context: its role in the
   change and anything worth scrutinising.
