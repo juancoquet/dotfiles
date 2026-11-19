@@ -54,9 +54,8 @@ unlabelled over forcing one.
 
 - **Title:** concise and imperative. **Body:** what changed, why, and how it
   was verified.
-- **Review guide:** write one against the step 3 base by following
-  [write-review-guide](../write-review-guide/SKILL.md). Place it directly
-  after the summary, or in the template's review section if it has one.
+- **Review guide:** follow [write-review-guide](../write-review-guide/SKILL.md)
+  against the step 3 base and place it after the summary.
 - Link the issue using the tracker's convention — a closing reference (e.g.
   `Closes #123`, `Fixes ENG-123`) for work that completes it, a plain
   reference otherwise.
