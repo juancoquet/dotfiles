@@ -116,8 +116,8 @@ supply my side of it yourself.
   concrete artifact to react to — an outline, rough take, stub, or UI or logic
   prototype via `/prototype`. Link the prototype as an asset. Use this when the
   key question is how something should look or behave.
-- **Grilling** (HITL): Use `/grill-me` and `/domain-modeling`, one question at a
-  time. This is the default.
+- **Grilling** (HITL): Use `/grill-me` and `/domain-modeling`, a round of
+  frontier questions at a time. This is the default.
 - **Task** (HITL or AFK): Do manual work that must happen before a decision can
   be made. Nothing remains to decide, prototype, or research, but the discussion
   is blocked until the work is done. Drive it alone where possible; otherwise

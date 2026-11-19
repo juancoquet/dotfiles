@@ -40,9 +40,9 @@ _Avoid_: Client, buyer, account
 
 ## Domains
 
-- [Ordering](./src/ordering/DOMAIN.md) — receives and tracks customer orders
-- [Billing](./src/billing/DOMAIN.md) — generates invoices and processes payments
-- [Fulfillment](./src/fulfillment/DOMAIN.md) — manages warehouse picking and shipping
+- [Ordering](./src/ordering/DOMAIN.md): receives and tracks customer orders
+- [Billing](./src/billing/DOMAIN.md): generates invoices and processes payments
+- [Fulfillment](./src/fulfillment/DOMAIN.md): manages warehouse picking and shipping
 
 ## Relationships
 

@@ -1,5 +1,5 @@
 interface:
   display_name: "Grill Me"
-  short_description: "A relentless interview to sharpen a plan or design"
+  short_description: "Stress-test thinking a round of questions at a time"
 policy:
   allow_implicit_invocation: false
