@@ -1,0 +1,3 @@
+interface:
+  display_name: "Write Review Guide"
+  short_description: "Write a PR file review order with brief context"

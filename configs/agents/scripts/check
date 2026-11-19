@@ -146,6 +146,7 @@ if rg -n -i '\bthe user\b' \
 	"$ROOT/skills/wayfinder" \
 	"$ROOT/skills/research" \
 	"$ROOT/skills/prototype" \
+	"$ROOT/skills/write-review-guide" \
 	"$ROOT/agents/primary-source-researcher"; then
 	echo "new agent content must address me directly" >&2
 	exit 1

@@ -1,6 +1,6 @@
 ---
 name: pr-open
-description: Open a pull request for the current branch. Prefers repo-local PR conventions, links the pertinent issue, and checks off its acceptance criteria on the issue itself before opening. Use when asked to open, raise, or create a PR for work that is ready. Invoke as `/pr-open`.
+description: Open a pull request for the current branch. Prefers repo-local PR conventions, includes a review guide, links the pertinent issue, and checks off its acceptance criteria on the issue itself before opening. Use when asked to open, raise, or create a PR for work that is ready. Invoke as `/pr-open`.
 argument-hint: "[base-branch]"
 ---
 
@@ -54,6 +54,8 @@ unlabelled over forcing one.
 
 - **Title:** concise and imperative. **Body:** what changed, why, and how it
   was verified.
+- **Review guide:** follow [write-review-guide](../write-review-guide/SKILL.md)
+  against the step 3 base and place it after the summary.
 - Link the issue using the tracker's convention — a closing reference (e.g.
   `Closes #123`, `Fixes ENG-123`) for work that completes it, a plain
   reference otherwise.
