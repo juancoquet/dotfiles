@@ -15,6 +15,8 @@ generated files last.
 - Group under `###` headings only when the change has distinct parts; keep
   numbering continuous.
 
+## Example
+
 ```markdown
 ## Review guide
 
