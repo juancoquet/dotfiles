@@ -1,5 +1,4 @@
 local keymap = require("keymap")
-local promptvim = require("promptvim")
 local remap = require("remap")
 
 require("hs.ipc")
@@ -59,8 +58,6 @@ local engine = remap.new(keymap)
 
 -- Global: Hammerspoon garbage-collects taps and timers only held by locals.
 keyboard = {}
-promptvim.install(keyboard)
-
 keyboard.seen = 0
 keyboard.tap = hs.eventtap.new(tapped, function(event)
 	keyboard.seen = keyboard.seen + 1
@@ -79,27 +76,11 @@ keyboard.tap = hs.eventtap.new(tapped, function(event)
 		event:setFlags(result.flags)
 	elseif result.action == "replace" then
 		for _, emit in ipairs(result.emit) do
-			-- This tap does not observe events it posts, so prompt Vim has to see
-			-- the replacement before it is released to the rest of the system.
-			local emitKind = emit.down and "keyDown" or "keyUp"
-			local consumed = false
-			if keyboard.onPrompt then
-				local probe = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
-				if emit.text then probe:setUnicodeString(emit.text) end
-				local ok, swallow = pcall(keyboard.onPrompt, probe, emitKind)
-				consumed = ok and swallow
-			end
-			if not consumed then
-				local out = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
-				if emit.text then out:setUnicodeString(emit.text) end
-				out:post()
-			end
+			local out = hs.eventtap.event.newKeyEvent(modList(emit.flags), emit.key, emit.down)
+			if emit.text then out:setUnicodeString(emit.text) end
+			out:post()
 		end
 		return true
-	end
-	if keyboard.onPrompt then
-		local ok, swallow = pcall(keyboard.onPrompt, event, kind)
-		if ok and swallow then return true end
 	end
 	return false
 end):start()
@@ -143,22 +124,9 @@ local function updateMenu()
 	if keyboard.disabled then
 		title = "⌨×"
 		tip = "Typing remaps disabled"
-	elseif keyboard.promptVim then
-		title = keyboard.promptMode == "normal" and "⌨ N" or "⌨ I"
-		tip = keyboard.promptMode == "normal" and "Prompt Vim: normal" or "Prompt Vim: insert"
 	end
 	keyboard.menu:setTitle(title)
 	keyboard.menu:setTooltip(tip)
-end
-
-function keyboard.refreshMenu()
-	if keyboard.menu then updateMenu() end
-end
-
-function keyboard.setPromptVim(enabled)
-	keyboard.promptVim = enabled and true or false
-	if not enabled and keyboard.resetPromptVim then keyboard.resetPromptVim() end
-	keyboard.refreshMenu()
 end
 
 function keyboard.setEnabled(enabled)
@@ -176,15 +144,9 @@ keyboard.menu:setMenu(function()
 			{ title = "Enable typing remaps", fn = function() keyboard.setEnabled(true) end },
 		}
 	end
-	local vimItem = keyboard.promptVim
-		and { title = "Disable prompt Vim", fn = function() keyboard.setPromptVim(false) end }
-		or { title = "Enable prompt Vim", fn = function() keyboard.setPromptVim(true) end }
 	return {
 		{ title = "Typing remaps: Enabled", disabled = true },
 		{ title = "Disable typing remaps", fn = function() keyboard.setEnabled(false) end },
-		{ title = "-" },
-		{ title = keyboard.promptVim and "Prompt Vim: On" or "Prompt Vim: Off", disabled = true },
-		vimItem,
 	}
 end)
 updateMenu()
