@@ -1,33 +1,24 @@
 ---
 name: grill-me
-description: A relentless interview to sharpen a plan or design.
-disable-model-invocation: true
+description: A relentless interview to sharpen a plan or design. Use when I want to stress-test a plan, decision, or idea, or ask to be grilled.
 ---
 
-Interview me relentlessly about every aspect of this until we reach a shared understanding. Walk down each branch of the decision tree, resolving dependencies between decisions one-by-one.
+Interview me relentlessly about every aspect of this until we reach a shared understanding. Map it as a design tree: every decision branches into the decisions that depend on it.
 
-Ask the questions one at a time, waiting for feedback on each question before continuing. Asking multiple questions at once is bewildering.
+Ask in rounds. Each round asks the frontier: every decision whose prerequisites are already settled. A question that depends on another question still open in the round belongs to a later round. Wait for my answers, then recompute the frontier for the next round.
 
 Use simple, clear language. Do not be more verbose than necessary, or terse at the cost of clarity.
 
-Present each question under these three headings, in this order:
+Format each question like so:
 
 ```markdown
-## Context
-
-<the situation around this decision>
-
-## Question
-
-<the decision>
-
-## Recommendation
-
-<your recommended answer>
+❓ **1** - **<title>**
+<body>
+🔹 <your recommended answer>
 ```
 
-Ask as plain text under those headings, not through a structured question tool — this is an interview, not a form.
+Ask as plain text, not through a structured question tool — this is an interview, not a form.
 
-If a *fact* can be found by exploring the environment (filesystem, tools, etc.), look it up rather than asking me. The *decisions*, though, are mine — put each one to me and wait for my answer.
+Finding *facts* is your job. When a question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent with a fresh context window to find it rather than asking me. Don't block on it: only the questions that depend on it wait; ask the rest of the frontier now. The *decisions* are mine — put each one to me and wait for my answer.
 
-Do not act on it until I confirm we have reached a shared understanding.
+The session is done when the frontier is empty: every branch visited, nothing silently assumed. Do not act on it until I confirm we have reached a shared understanding.
