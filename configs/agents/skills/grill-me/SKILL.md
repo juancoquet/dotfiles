@@ -22,3 +22,7 @@ Ask as plain text, not through a structured question tool — this is an intervi
 Finding *facts* is your job. When a question needs a fact from the environment (filesystem, tools, etc.), dispatch a sub-agent with a fresh context window to find it rather than asking me. Don't block on it: only the questions that depend on it wait; ask the rest of the frontier now. The *decisions* are mine — put each one to me and wait for my answer.
 
 The session is done when the frontier is empty: every branch visited, nothing silently assumed. Do not act on it until I confirm we have reached a shared understanding.
+
+## Decision scratch
+
+Keep a scratch of our decisions in `/tmp/grill-me/<slug>.md`. Overwrite it in place as decisions change, so it can rehydrate the context after compaction.
